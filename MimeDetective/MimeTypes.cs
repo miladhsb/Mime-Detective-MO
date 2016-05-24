@@ -372,11 +372,7 @@ namespace MimeDetective
 				{
 					var mimeType = textReader.ReadToEnd();
 
-#if net451
-					textReader.Close();
-#else
 					textReader.Dispose();
-#endif
 
 					if (mimeType == ODT.Mime)
 						result = ODT;

@@ -1,34 +1,38 @@
 ﻿{
-	"version": "1.0.0-*",
-	"description": "MimeDetective Class Library",
-	"authors": [ "clark" ],
-	"tags": [ "" ],
-	"projectUrl": "",
-	"licenseUrl": "",
+	"packOptions": {
+		"summary": "MimeDetective",
+		"tags": [ "mime", "mime-type", "content-type", "contenttype" ],
+		"owners": [ "clarkis117" ],
+		"projectUrl": "https://github.com/clarkis117/Mime-Detective",
+		"licenseUrl": "https://mit-license.org/",
+		"repository": {
+			"type": "git",
+			"url": "https://github.com/clarkis117/Mime-Detective.git"
+		}
+	},
+
+	"version": "1.0.0-rc2",
+	"description": "MimeDetective Class Library .NET Core Fork",
+	"authors": [ "Joshua Clark" ],
 
 	"dependencies": {
-		"System.Xml.XmlSerializer": "4.0.11-beta-23516",
-		"System.Xml.ReaderWriter": "4.0.11-beta-23516",
-		"System.IO": "4.0.11-beta-23516",
-		"System.IO.Compression.ZipFile": "4.0.1-beta-23516"
+		"System.Linq": "4.1.0-rc2-24027",
+		"System.Xml.XmlSerializer": "4.0.11-rc2-24027",
+		"System.Xml.ReaderWriter": "4.0.11-rc2-24027",
+		"System.IO": "4.1.0-rc2-24027",
+		"System.IO.Compression.ZipFile": "4.0.1-rc2-24027",
+		"System.IO.FileSystem": "4.0.1-rc2-24027",
+		"System.IO.Compression": "4.1.0-rc2-24027",
+		"System.Runtime.Extensions": "4.1.0-rc2-24027",
+		"System.Runtime": "4.1.0-rc2-24027",
+		"System.Runtime.InteropServices": "4.1.0-rc2-24027",
+		"System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc2-24027",
+		"System.Runtime.InteropServices.PInvoke": "4.0.0-rc2-24027"
 	},
 
 	"frameworks": {
-		"net451": {
-			"frameworkAssemblies": {
-				"System.XML": "4.0.0.0",
-				"System.Runtime": "4.0.10.0"
-			}
-		},
-		"dotnet5.4": {
-			"dependencies": {
-				"Microsoft.CSharp": "4.0.1-beta-23516",
-				"System.Collections": "4.0.11-beta-23516",
-				"System.Linq": "4.0.1-beta-23516",
-				"System.Runtime": "4.0.21-beta-23516",
-				"System.Threading": "4.0.11-beta-23516",
-				"System.IO.FileSystem": "4.0.1-beta-23516"
-			}
+		"netstandard1.5": {
+			"imports": [ "dnxcore50", "portable-net45+win8" ]
 		}
 	}
 }
