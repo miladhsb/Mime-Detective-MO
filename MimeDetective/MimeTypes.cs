@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -13,11 +14,11 @@ namespace MimeDetective
 	public static class MimeTypes
 	{
 		// all the file types to be put into one list
-		public static List<FileType> types;
+		public static FileType[] types;
 
 		static MimeTypes()
 		{
-			types = new List<FileType> {PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
+			types = new FileType[] {PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
 				BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, MIDI, FLV, WAVE, DWG, LIB_COFF, PST, PSD,
 				AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE };
 		}
@@ -175,73 +176,22 @@ namespace MimeDetective
 			using (FileStream file = File.OpenRead(path))
 			{
 				var serializer = new System.Xml.Serialization.XmlSerializer(types.GetType());
-				List<FileType> tmpTypes = (List<FileType>)serializer.Deserialize(file);
-				foreach (var type in tmpTypes)
-					types.Add(type);
+				FileType[] tmpTypes = (FileType[])serializer.Deserialize(file);
+
+				int typeOrgLenth = types.Length;
+
+				Array.Resize(ref types, types.Length + tmpTypes.Length);
+
+				Array.Copy(tmpTypes, 0, types, typeOrgLenth, tmpTypes.Length);
 			}
 		}
 
-		/// <summary>
-		/// Read header of bytes and depending on the information in the header
-		/// return object FileType.
-		/// Return null in case when the file type is not identified. 
-		/// Throws Application exception if the file can not be read or does not exist
-		/// </summary>
-		/// <remarks>
-		/// A temp file is written to get a FileInfo from the given bytes.
-		/// If this is not intended use 
-		/// 
-		///     GetFileType(() => bytes); 
-		///     
-		/// </remarks>
-		/// <param name="file">The FileInfo object.</param>
-		/// <returns>FileType or null not identified</returns>
-		public static FileType GetFileType(this byte[] bytes)
+		/*
+		public static FileType GetFileType(FileInfo file)
 		{
-			return GetFileType(new MemoryStream(bytes));
+			return MimeTypes.GetFileType(() => MimeTypes.ReadFileHeader(file, MimeTypes.MaxHeaderSize), file);
 		}
-
-		/// <summary>
-		/// Read header of a stream and depending on the information in the header
-		/// return object FileType.
-		/// Return null in case when the file type is not identified. 
-		/// Throws Application exception if the file can not be read or does not exist
-		/// </summary>
-		/// <param name="file">The FileInfo object.</param>
-		/// <returns>FileType or null not identified</returns>
-		public static FileType GetFileType(this Stream stream)
-		{
-			FileType fileType = null;
-			var fileName = Path.GetTempFileName();
-
-			try
-			{
-				using (var fileStream = File.Create(fileName))
-				{
-					stream.Seek(0, SeekOrigin.Begin);
-					stream.CopyTo(fileStream);
-				}
-				fileType = GetFileType(new FileInfo(fileName));
-			}
-			finally
-			{
-				File.Delete(fileName);
-			}
-			return fileType;
-		}
-
-		/// <summary>
-		/// Read header of a file and depending on the information in the header
-		/// return object FileType.
-		/// Return null in case when the file type is not identified. 
-		/// Throws Application exception if the file can not be read or does not exist
-		/// </summary>
-		/// <param name="file">The FileInfo object.</param>
-		/// <returns>FileType or null not identified</returns>
-		public static FileType GetFileType(this FileInfo file)
-		{
-			return GetFileType(() => ReadFileHeader(file, MaxHeaderSize), file.FullName);
-		}
+		*/
 
 		/// <summary>
 		/// Read header of a file and depending on the information in the header
@@ -252,13 +202,23 @@ namespace MimeDetective
 		/// <param name="fileHeaderReadFunc">A function which returns the bytes found</param>
 		/// <param name="fileFullName">If given and file typ is a zip file, a check for docx and xlsx is done</param>
 		/// <returns>FileType or null not identified</returns>
-		public static FileType GetFileType(Func<byte[]> fileHeaderReadFunc, string fileFullName = "")
+		public static FileType GetFileType(Func<byte[]> fileHeaderReadFunc, Stream stream = null)
+		{
+			return getFileType( fileHeaderReadFunc(), stream);
+		}
+
+		public static async Task<FileType> GetFileTypeAsync(Func<Task<byte[]>> fileHeaderReadFunc, Stream stream = null)
+		{
+			return getFileType(await fileHeaderReadFunc(), stream);
+		}
+
+		private static FileType getFileType(byte[] fileHeader, Stream stream = null)
 		{
 			// if none of the types match, return null
 			FileType fileType = null;
 
 			// read first n-bytes from the file
-			byte[] fileHeader = fileHeaderReadFunc();
+			//byte[] fileHeader = fileHeaderReadFunc();
 
 			// checking if it's binary (not really exact, but should do the job)
 			// shouldn't work with UTF-16 OR UTF-32 files
@@ -272,13 +232,14 @@ namespace MimeDetective
 				foreach (FileType type in types)
 				{
 					int matchingCount = GetFileMatchingCount(fileHeader, type);
+
 					if (matchingCount == type.Header.Length)
 					{
 						// check for docx and xlsx only if a file name is given
 						// there may be situations where the file name is not given
-						// or it is unpracticable to write a temp file to get the FileInfo
-						if (type.Equals(ZIP) && !String.IsNullOrEmpty(fileFullName))
-							fileType = CheckForDocxAndXlsx(type, fileFullName);
+						// or it is unpractical to write a temp file to get the FileInfo
+						if (type.Equals(ZIP) && stream != null)
+							fileType = CheckForDocxAndXlsxStream(type, stream);
 						else
 							fileType = type;    // if all the bytes match, return the type
 
@@ -290,47 +251,11 @@ namespace MimeDetective
 		}
 
 		/// <summary>
-		/// Determines whether provided file belongs to one of the provided list of files
-		/// </summary>
-		/// <param name="file">The file.</param>
-		/// <param name="requiredTypes">The required types.</param>
-		/// <returns>
-		///   <c>true</c> if file of the one of the provided types; otherwise, <c>false</c>.
-		/// </returns>
-		public static bool isFileOfTypes(this FileInfo file, List<FileType> requiredTypes)
-		{
-			FileType currentType = file.GetFileType();
-
-			if (null == currentType)
-			{
-				return false;
-			}
-
-			return requiredTypes.Contains(currentType);
-		}
-
-		/// <summary>
-		/// Determines whether provided file belongs to one of the provided list of files,
-		/// where list of files provided by string with Comma-Separated-Values of extensions
-		/// </summary>
-		/// <param name="file">The file.</param>
-		/// <param name="requiredTypes">The required types.</param>
-		/// <returns>
-		///   <c>true</c> if file of the one of the provided types; otherwise, <c>false</c>.
-		/// </returns>
-		public static bool isFileOfTypes(this FileInfo file, String CSV)
-		{
-			List<FileType> providedTypes = GetFileTypesByExtensions(CSV);
-
-			return file.isFileOfTypes(providedTypes);
-		}
-
-		/// <summary>
 		/// Gets the list of FileTypes based on list of extensions in Comma-Separated-Values string
 		/// </summary>
 		/// <param name="CSV">The CSV String with extensions</param>
 		/// <returns>List of FileTypes</returns>
-		private static List<FileType> GetFileTypesByExtensions(String CSV)
+		public static List<FileType> GetFileTypesByExtensions(String CSV)
 		{
 			String[] extensions = CSV.ToUpper().Replace(" ", "").Split(',');
 
@@ -346,12 +271,12 @@ namespace MimeDetective
 			return result;
 		}
 
-		private static FileType CheckForDocxAndXlsx(FileType type, string fileFullName)
+		private static FileType CheckForDocxAndXlsxStream(FileType type, Stream zipData)
 		{
 			FileType result = null;
 
 			//check for docx and xlsx
-			using (var zipFile = ZipFile.OpenRead(fileFullName))
+			using (var zipFile = new ZipArchive(zipData))
 			{
 				if (zipFile.Entries.Any(e => e.FullName.StartsWith("word/")))
 					result = WORDX;
@@ -362,6 +287,25 @@ namespace MimeDetective
 			}
 			return result;
 		}
+
+		/*
+		private static FileType CheckForDocxAndXlsx(FileType type, FileInfo fileInfo)
+		{
+			FileType result = null;
+
+			//check for docx and xlsx
+			using (var zipFile = ZipFile.OpenRead(fileInfo.FullName))
+			{
+				if (zipFile.Entries.Any(e => e.FullName.StartsWith("word/")))
+					result = WORDX;
+				else if (zipFile.Entries.Any(e => e.FullName.StartsWith("xl/")))
+					result = EXCELX;
+				else
+					result = CheckForOdtAndOds(result, zipFile);
+			}
+			return result;
+		}
+		*/
 
 		private static FileType CheckForOdtAndOds(FileType result, ZipArchive zipFile)
 		{
@@ -387,6 +331,7 @@ namespace MimeDetective
 		private static int GetFileMatchingCount(byte[] fileHeader, FileType type)
 		{
 			int matchingCount = 0;
+
 			for (int i = 0; i < type.Header.Length; i++)
 			{
 				// if file offset is not set to zero, we need to take this into account when comparing.
@@ -406,14 +351,18 @@ namespace MimeDetective
 			return matchingCount;
 		}
 
+		#endregion
+
+		#region Byte Header Get Methods
+
 		/// <summary>
 		/// Reads the file header - first (16) bytes from the file
 		/// </summary>
 		/// <param name="file">The file to work with</param>
 		/// <returns>Array of bytes</returns>
-		private static Byte[] ReadFileHeader(FileInfo file, int MaxHeaderSize)
+		internal static Byte[] ReadFileHeader(FileInfo file, int MaxHeaderSize)
 		{
-			Byte[] header = new byte[MaxHeaderSize];
+			byte[] header = new byte[MaxHeaderSize];
 			try  // read file
 			{
 				using (FileStream fsSource = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
@@ -430,76 +379,108 @@ namespace MimeDetective
 
 			return header;
 		}
-#endregion
 
-#region isType functions
-
-
-		/// <summary>
-		/// Determines whether the specified file is of provided type
-		/// </summary>
-		/// <param name="file">The file.</param>
-		/// <param name="type">The FileType</param>
-		/// <returns>
-		///   <c>true</c> if the specified file is type; otherwise, <c>false</c>.
-		/// </returns>
-		public static bool IsType(this FileInfo file, FileType type)
+		internal static async Task<byte[]> ReadFileHeaderAsync(FileInfo file, int MaxHeaderSize)
 		{
-			FileType actualType = GetFileType(file);
+			byte[] header = new byte[MaxHeaderSize];
 
-			if (null == actualType)
-				return false;
+			try  // read file
+			{
+				using (FileStream fsSource = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
+				{
+					// read first symbols from file into array of bytes.
+					await fsSource.ReadAsync(header, 0, MaxHeaderSize);
+				}   // close the file stream
 
-			return (actualType.Equals(type));
+			}
+			catch (Exception e) // file could not be found/read
+			{
+				throw new System.IO.FileLoadException("Could not read file : " + e.Message, file.FullName, e);
+			}
+
+			return header;
 		}
 
 		/// <summary>
-		/// Determines whether the specified file is MS Excel spreadsheet
+		/// Takes a stream does, not dispose of stream, resets read position to beginning though
 		/// </summary>
-		/// <param name="fileInfo">The FileInfo</param>
-		/// <returns>
-		///   <c>true</c> if the specified file info is excel; otherwise, <c>false</c>.
-		/// </returns>
-		public static bool IsExcel(this FileInfo fileInfo)
-		{
-			return fileInfo.IsType(EXCEL);
-		} 
-
-		/// <summary>
-		/// Determines whether the specified file is Microsoft PowerPoint Presentation
-		/// </summary>
-		/// <param name="fileInfo">The FileInfo object.</param>
-		/// <returns>
-		///   <c>true</c> if the specified file info is PPT; otherwise, <c>false</c>.
-		/// </returns>
-		public static bool IsPpt(this FileInfo fileInfo)
-		{
-			return fileInfo.IsType(PPT);
-		}
-
-		/// <summary>
-		/// Checks if the file is executable
-		/// </summary>
-		/// <param name="fileInfo"></param>
+		/// <param name="stream"></param>
+		/// <param name="MaxHeaderSize"></param>
 		/// <returns></returns>
-		public static bool IsExe(this FileInfo fileInfo)
+		internal static byte[] ReadHeaderFromStream(Stream stream, int MaxHeaderSize)
 		{
-			return fileInfo.IsType(DLL_EXE);
+			byte[] header = new byte[MaxHeaderSize];
+
+			try  // read stream
+			{
+				if (!stream.CanRead)
+				{
+					throw new System.IO.IOException("Could not read from Stream");
+				}
+
+				if (stream.Position > 0)
+				{
+					stream.Seek(0, SeekOrigin.Begin);
+				}
+
+				stream.Read(header, 0, MaxHeaderSize);
+
+			}
+			catch (Exception e) // file could not be found/read
+			{
+				throw new Exception("Could not read Stream : " + e.Message);
+			}
+
+			return header;
 		}
 
 		/// <summary>
-		/// Check if the file is Microsoft Installer.
-		/// Beware, many Microsoft file types are starting with the same header. 
-		/// So use this one with caution. If you think the file is MSI, just need to confirm, use this method. 
-		/// But it could be MSWord or MSExcel, or Powerpoint... 
+		/// Takes a stream does, not dispose of stream, resets read position to beginning though
 		/// </summary>
-		/// <param name="fileInfo"></param>
+		/// <param name="stream"></param>
+		/// <param name="MaxHeaderSize"></param>
 		/// <returns></returns>
-		public static bool IsMsi(this FileInfo fileInfo)
+		internal static async Task<byte[]> ReadHeaderFromStreamAsync(Stream stream, int MaxHeaderSize)
 		{
-			// MSI has a generic DOCFILE header. Also it matches PPT files
-			return fileInfo.IsType(PPT) || fileInfo.IsType(MSDOC);
+			byte[] header = new byte[MaxHeaderSize];
+
+			try  // read stream
+			{
+				if (!stream.CanRead)
+				{
+					throw new System.IO.IOException("Could not read from Stream");
+				}
+
+				if (stream.Position > 0)
+				{
+					stream.Seek(0, SeekOrigin.Begin);
+				}
+
+				await stream.ReadAsync(header, 0, MaxHeaderSize);
+
+			}
+			catch (Exception e) // file could not be found/read
+			{
+				throw new Exception("Could not read Stream : " + e.Message);
+			}
+
+			return header;
 		}
-#endregion
+
+		internal static byte[] ReadHeaderFromByteArray(byte[] byteArray, int MaxHeaderSize)
+		{
+			if (byteArray.Length < MaxHeaderSize)
+			{
+				throw new ArgumentException("Is smaller than" + nameof(MaxHeaderSize), nameof(byteArray));
+			}
+
+			byte[] header = new byte[MaxHeaderSize];
+
+			Array.Copy(byteArray, header, MaxHeaderSize);
+
+			return header;
+		}
+
+		#endregion
 	}
 }
