@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace MimeDetective
 {
@@ -351,9 +352,9 @@ namespace MimeDetective
 			return matchingCount;
 		}
 
-		#endregion
+#endregion
 
-		#region Byte Header Get Methods
+#region Byte Header Get Methods
 
 		/// <summary>
 		/// Reads the file header - first (16) bytes from the file
@@ -481,6 +482,6 @@ namespace MimeDetective
 			return header;
 		}
 
-		#endregion
+#endregion
 	}
 }
