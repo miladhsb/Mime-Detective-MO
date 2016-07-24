@@ -10,12 +10,22 @@ namespace MimeDetectiveTests.Tests.Documents
 {
 	public class DocumentsTests
 	{
-		public const string ImagePath = "./Data/Documents/";
+		public const string DocsPath = "./Data/Documents/";
+
+		[Fact]
+		public async Task FileInfoDocx()
+		{
+			var info = new FileInfo(DocsPath + "test.docx");
+
+			var fileInfo = await info.GetFileTypeAsync();
+
+			Assert.True(fileInfo.Extension == "docx");
+		}
 
 		[Fact]
 		public void IsDocx()
 		{
-			var info = new FileInfo(ImagePath + "test.docx");
+			var info = new FileInfo(DocsPath + "test.docx");
 
 			Assert.True(info.GetFileType().Mime == MimeTypes.WORDX.Mime);
 		}
@@ -23,7 +33,7 @@ namespace MimeDetectiveTests.Tests.Documents
 		[Fact]
 		public void IsDoc()
 		{
-			var info = new FileInfo(ImagePath + "test.doc");
+			var info = new FileInfo(DocsPath + "test.doc");
 
 			Assert.True(info.IsWord());
 		}
