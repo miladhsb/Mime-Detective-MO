@@ -70,11 +70,11 @@ namespace MimeDetective
 		public readonly static FileType GIF = new FileType(new byte?[] { 0x47, 0x49, 0x46, 0x38, null, 0x61 }, "gif", "image/gif");
 		public readonly static FileType BMP = new FileType(new byte?[] { 0x42, 0x4D }, "bmp", "image/bmp"); // or image/x-windows-bmp
 		public readonly static FileType ICO = new FileType(new byte?[] { 0, 0, 1, 0 }, "ico", "image/x-icon");
-		
+		//tiff
 		//todo review support for tiffs, values for files need verified
-		public readonly static FileType TIFF = new FileType(new byte?[] {0x49,0x44,0x33}, "tiff", "image/tiff");
+		public readonly static FileType TIFF = new FileType(new byte?[] { 0x49, 0x44, 0x33 }, "tiff", "image/tiff");
 		public readonly static FileType TiffLittleEndian = new FileType(new byte?[] { 0x49, 0x49, 0x2A, 0, 0x10, 0, 0, 0, 0x43, 0x52 }, "tiff", "image/tiff");
-		public readonly static FileType TiffBigEndian = new FileType(new byte?[] {0x4D, 0x4D, 0x4D, 0x44, 0, 0}, "tiff", "image/tiff");
+		public readonly static FileType TiffBigEndian = new FileType(new byte?[] { 0x4D, 0x4D, 0x4D, 0x44, 0, 0 }, "tiff", "image/tiff");
 
 		#endregion
 
@@ -207,17 +207,17 @@ namespace MimeDetective
 		/// <param name="fileHeaderReadFunc">A function which returns the bytes found</param>
 		/// <param name="fileFullName">If given and file typ is a zip file, a check for docx and xlsx is done</param>
 		/// <returns>FileType or null not identified</returns>
-		public static FileType GetFileType(Func<byte[]> fileHeaderReadFunc, Stream stream = null)
+		public static FileType GetFileType(Func<byte[]> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
 		{
 			return getFileType( fileHeaderReadFunc(), stream);
 		}
 
-		public static async Task<FileType> GetFileTypeAsync(Func<Task<byte[]>> fileHeaderReadFunc, Stream stream = null)
+		public static async Task<FileType> GetFileTypeAsync(Func<Task<byte[]>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
 		{
 			return getFileType(await fileHeaderReadFunc(), stream);
 		}
 
-		private static FileType getFileType(byte[] fileHeader, Stream stream = null)
+		private static FileType getFileType(byte[] fileHeader, Stream stream = null, byte[] data = null)
 		{
 			// if none of the types match, return null
 			FileType fileType = null;
@@ -243,10 +243,23 @@ namespace MimeDetective
 						// check for docx and xlsx only if a file name is given
 						// there may be situations where the file name is not given
 						// or it is unpractical to write a temp file to get the FileInfo
-						if (type.Equals(ZIP) && stream != null)
-							fileType = CheckForDocxAndXlsxStream(type, stream);
+						if (type.Equals(ZIP))
+						{
+							if (stream != null)
+							{
+								fileType = CheckForDocxAndXlsxStream(type, stream);
+							}
+							else
+							{
+								var memstream = new MemoryStream(data);
+
+								fileType = CheckForDocxAndXlsxStream(type, memstream);
+							}
+						}
 						else
+						{
 							fileType = type;    // if all the bytes match, return the type
+						}
 
 						break;
 					}

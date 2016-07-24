@@ -19,18 +19,18 @@ namespace MimeDetective
 		/// <returns>FileType or null not identified</returns>
 		public static FileType GetFileType(this FileInfo file)
 		{
-			using (var stream = file.OpenRead())
-			{
-				return MimeTypes.GetFileType(() => MimeTypes.ReadFileHeader(file, MimeTypes.MaxHeaderSize), stream);
-			}
+			//stream will be disposed in side of gettype
+			var stream = file.OpenRead();
+
+			return MimeTypes.GetFileType(() => MimeTypes.ReadFileHeader(file, MimeTypes.MaxHeaderSize), stream);
 		}
 
 		public static Task<FileType> GetFileTypeAsync(this FileInfo file)
 		{
-			using (var stream = file.OpenRead())
-			{
-				return MimeTypes.GetFileTypeAsync(() => MimeTypes.ReadFileHeaderAsync(file, MimeTypes.MaxHeaderSize), stream);
-			}
+			//stream will be disposed in side of gettype
+			var stream = file.OpenRead();
+
+			return MimeTypes.GetFileTypeAsync(() => MimeTypes.ReadFileHeaderAsync(file, MimeTypes.MaxHeaderSize), stream);
 		}
 
 		/// <summary>

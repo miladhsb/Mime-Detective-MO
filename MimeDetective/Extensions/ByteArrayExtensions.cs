@@ -24,7 +24,7 @@ namespace MimeDetective.Extensions
 		/// <returns>FileType or null not identified</returns>
 		public static FileType GetFileType(this byte[] bytes)
 		{
-			return MimeTypes.GetFileType(() => MimeTypes.ReadHeaderFromByteArray(bytes, MimeTypes.MaxHeaderSize), null);
+			return MimeTypes.GetFileType(() => MimeTypes.ReadHeaderFromByteArray(bytes, MimeTypes.MaxHeaderSize), null, bytes);
 		}
 
 	}
