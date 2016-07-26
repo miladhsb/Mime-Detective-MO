@@ -21,7 +21,8 @@ namespace MimeDetective
 		{
 			types = new FileType[] {PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
 				BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, MIDI, FLV, WAVE, DWG, LIB_COFF, PST, PSD,
-				AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE, TIFF, TiffBigEndian, TiffLittleEndian };
+				AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE, TIFF, TiffBigEndian, TiffLittleEndian,
+				Mp4ISOv1, MovQuickTime, MP4VideoFiles, Mp4QuickTime, Mp4VideoFile, ThridGPP2File, Mp4VideoFile2 };
 		}
 
 		#region Constants
@@ -63,7 +64,7 @@ namespace MimeDetective
 		#endregion
 
 		// graphics
-		#region Graphics jpeg, png, gif, bmp, ico
+		#region Graphics jpeg, png, gif, bmp, ico, tiff
 
 		public readonly static FileType JPEG = new FileType(new byte?[] { 0xFF, 0xD8, 0xFF }, "jpg", "image/jpeg");
 		public readonly static FileType PNG = new FileType(new byte?[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, "png", "image/png");
@@ -76,6 +77,28 @@ namespace MimeDetective
 		public readonly static FileType TiffLittleEndian = new FileType(new byte?[] { 0x49, 0x49, 0x2A, 0, 0x10, 0, 0, 0, 0x43, 0x52 }, "tiff", "image/tiff");
 		public readonly static FileType TiffBigEndian = new FileType(new byte?[] { 0x4D, 0x4D, 0x4D, 0x44, 0, 0 }, "tiff", "image/tiff");
 
+		#endregion
+
+		#region Video
+
+		//mp4 iso base file format, value: ....ftypisom
+		public readonly static FileType Mp4ISOv1 = new FileType(new byte?[] { 0, 0, 0, 0x14, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D }, "mp4", "video/mp4");
+
+		public readonly static FileType MovQuickTime = new FileType(new byte?[] { 0, 0, 0, 0x14, 0x66, 0x74, 0x79, 0x70, 0x71, 0x74, 0x20, 0x20 }, "mov", "video/quicktime");
+
+		public readonly static FileType MP4VideoFiles = new FileType(new byte?[] { 0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70, 0x35 }, "mp4", "video/mp3");
+
+		public readonly static FileType Mp4QuickTime = new FileType(new byte?[] { 0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70, 0x34, 0x32 }, "mp4", "video/mp4");
+
+		//check this again
+		public readonly static FileType Mp4VideoFile = new FileType(new byte?[] { 0, 0, 0, 0x1C, 0x66, 0x74, 0x79, 0x70, 0x4D, 0x53, 0x4E, 0x56, 0x01, 0x29, 0, 0x46, 0x4D, 0x53, 0x4E, 0x56, 0x6D, 0x70, 0x34, 0x32 }, "mp4", "video/mp4");
+
+		public readonly static FileType ThridGPP2File = new FileType(new byte?[] { 0, 0, 0, 0x20, 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70 }, "3gp", "video/3gg");
+
+		//ftyp3gp5
+		public readonly static FileType Mp4VideoFile2 = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70, 0x35 }, 4, "mp4", "video/mp4");
+		
+		
 		#endregion
 
 		#region Zip, 7zip, rar, dll_exe, tar, bz2, gz_tgz
