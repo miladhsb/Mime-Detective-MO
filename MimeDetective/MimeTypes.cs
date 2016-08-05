@@ -232,12 +232,12 @@ namespace MimeDetective
 		/// <returns>FileType or null not identified</returns>
 		public static FileType GetFileType(Func<byte[]> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
 		{
-			return getFileType( fileHeaderReadFunc(), stream);
+			return getFileType( fileHeaderReadFunc(), stream, data);
 		}
 
 		public static async Task<FileType> GetFileTypeAsync(Func<Task<byte[]>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
 		{
-			return getFileType(await fileHeaderReadFunc(), stream);
+			return getFileType(await fileHeaderReadFunc(), stream, data);
 		}
 
 		private static FileType getFileType(byte[] fileHeader, Stream stream = null, byte[] data = null)
@@ -270,13 +270,17 @@ namespace MimeDetective
 						{
 							if (stream != null)
 							{
-								fileType = CheckForDocxAndXlsxStream(type, stream);
+								using (stream)
+								{
+									fileType = CheckForDocxAndXlsxStream(type, stream);
+								}
 							}
 							else
 							{
-								var memstream = new MemoryStream(data);
-
-								fileType = CheckForDocxAndXlsxStream(type, memstream);
+								using (var memstream = new MemoryStream(data))
+								{
+									fileType = CheckForDocxAndXlsxStream(type, memstream);
+								}
 							}
 						}
 						else
@@ -450,29 +454,32 @@ namespace MimeDetective
 		/// <returns></returns>
 		internal static byte[] ReadHeaderFromStream(Stream stream, int MaxHeaderSize)
 		{
-			byte[] header = new byte[MaxHeaderSize];
-
-			try  // read stream
+			using (stream)
 			{
-				if (!stream.CanRead)
+				byte[] header = new byte[MaxHeaderSize];
+
+				try  // read stream
 				{
-					throw new System.IO.IOException("Could not read from Stream");
+					if (!stream.CanRead)
+					{
+						throw new System.IO.IOException("Could not read from Stream");
+					}
+
+					if (stream.Position > 0)
+					{
+						stream.Seek(0, SeekOrigin.Begin);
+					}
+
+					stream.Read(header, 0, MaxHeaderSize);
+
+				}
+				catch (Exception e) // file could not be found/read
+				{
+					throw new Exception("Could not read Stream : " + e.Message);
 				}
 
-				if (stream.Position > 0)
-				{
-					stream.Seek(0, SeekOrigin.Begin);
-				}
-
-				stream.Read(header, 0, MaxHeaderSize);
-
+				return header;
 			}
-			catch (Exception e) // file could not be found/read
-			{
-				throw new Exception("Could not read Stream : " + e.Message);
-			}
-
-			return header;
 		}
 
 		/// <summary>
@@ -483,29 +490,32 @@ namespace MimeDetective
 		/// <returns></returns>
 		internal static async Task<byte[]> ReadHeaderFromStreamAsync(Stream stream, int MaxHeaderSize)
 		{
-			byte[] header = new byte[MaxHeaderSize];
-
-			try  // read stream
+			using (stream)
 			{
-				if (!stream.CanRead)
+				byte[] header = new byte[MaxHeaderSize];
+
+				try  // read stream
 				{
-					throw new System.IO.IOException("Could not read from Stream");
+					if (!stream.CanRead)
+					{
+						throw new System.IO.IOException("Could not read from Stream");
+					}
+
+					if (stream.Position > 0)
+					{
+						stream.Seek(0, SeekOrigin.Begin);
+					}
+
+					await stream.ReadAsync(header, 0, MaxHeaderSize);
+
+				}
+				catch (Exception e) // file could not be found/read
+				{
+					throw new Exception("Could not read Stream : " + e.Message);
 				}
 
-				if (stream.Position > 0)
-				{
-					stream.Seek(0, SeekOrigin.Begin);
-				}
-
-				await stream.ReadAsync(header, 0, MaxHeaderSize);
-
+				return header;
 			}
-			catch (Exception e) // file could not be found/read
-			{
-				throw new Exception("Could not read Stream : " + e.Message);
-			}
-
-			return header;
 		}
 
 		internal static byte[] ReadHeaderFromByteArray(byte[] byteArray, int MaxHeaderSize)
