@@ -21,7 +21,7 @@ namespace MimeDetective
 		{
 			types = new FileType[] {PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
 				BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, MIDI, FLV, WAVE, DWG, LIB_COFF, PST, PSD,
-				AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE, TIFF, TiffBigEndian, TiffLittleEndian,
+				AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE,
 				Mp4ISOv1, MovQuickTime, MP4VideoFiles, Mp4QuickTime, Mp4VideoFile, ThridGPP2File, Mp4VideoFile2 };
 		}
 
@@ -73,9 +73,9 @@ namespace MimeDetective
 		public readonly static FileType ICO = new FileType(new byte?[] { 0, 0, 1, 0 }, "ico", "image/x-icon");
 		//tiff
 		//todo review support for tiffs, values for files need verified
-		public readonly static FileType TIFF = new FileType(new byte?[] { 0x49, 0x44, 0x33 }, "tiff", "image/tiff");
-		public readonly static FileType TiffLittleEndian = new FileType(new byte?[] { 0x49, 0x49, 0x2A, 0, 0x10, 0, 0, 0, 0x43, 0x52 }, "tiff", "image/tiff");
-		public readonly static FileType TiffBigEndian = new FileType(new byte?[] { 0x4D, 0x4D, 0x4D, 0x44, 0, 0 }, "tiff", "image/tiff");
+		//public readonly static FileType TIFF = new FileType(new byte?[] { 0x49, 0x44, 0x33 }, "tiff", "image/tiff");
+		//public readonly static FileType TiffLittleEndian = new FileType(new byte?[] { 0x49, 0x49, 0x2A, 0, 0x10, 0, 0, 0, 0x43, 0x52 }, "tiff", "image/tiff");
+		//public readonly static FileType TiffBigEndian = new FileType(new byte?[] { 0x4D, 0x4D, 0x4D, 0x44, 0, 0 }, "tiff", "image/tiff");
 
 		#endregion
 
