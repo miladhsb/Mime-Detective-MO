@@ -19,19 +19,17 @@ namespace MimeDetective
 		/// <returns>FileType or null not identified</returns>
 		public static FileType GetFileType(this FileInfo file)
 		{
-			//stream will be disposed in side of gettype
 			using (var stream = file.OpenRead())
 			{
 				return MimeTypes.GetFileType(() => MimeTypes.ReadFileHeader(file, MimeTypes.MaxHeaderSize), stream);
 			}
 		}
 
-		public static Task<FileType> GetFileTypeAsync(this FileInfo file)
+		public static async Task<FileType> GetFileTypeAsync(this FileInfo file)
 		{
-			//stream will be disposed in side of gettype
 			using (var stream = file.OpenRead())
 			{
-				return MimeTypes.GetFileTypeAsync(() => MimeTypes.ReadFileHeaderAsync(file, MimeTypes.MaxHeaderSize), stream);
+				return await MimeTypes.GetFileTypeAsync(() => MimeTypes.ReadFileHeaderAsync(file, MimeTypes.MaxHeaderSize), stream);
 			}
 		}
 
@@ -47,10 +45,8 @@ namespace MimeDetective
 		{
 			FileType currentType = file.GetFileType();
 
-			if (null == currentType)
-			{
+			if (currentType.Mime == null)
 				return false;
-			}
 
 			return requiredTypes.Contains(currentType);
 		}
@@ -86,7 +82,7 @@ namespace MimeDetective
 		{
 			FileType actualType = GetFileType(file);
 
-			if (null == actualType)
+			if (actualType.Mime == null)
 				return false;
 
 			return (actualType.Equals(type));

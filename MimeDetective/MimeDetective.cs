@@ -1,7 +1,7 @@
 ﻿/*
 	Copyright (C) 2014  Muraad Nofal
 	Contact: muraad.nofal@gmail.com
- 
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -14,20 +14,18 @@
 
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * */
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-
+using System.Linq;
 
 namespace MimeDetective
 {
 	public class MimeDetective
 	{
-		public static FileType LearnMimeType(FileInfo file, string mimeType, int headerSize, int offset = 0)
+		public static FileType LearnMimeType(FileInfo file, string mimeType, int headerSize, ushort offset = 0)
 		{
 			byte?[] data = new byte?[headerSize];
 			using (FileStream stream = file.OpenRead())
@@ -57,13 +55,12 @@ namespace MimeDetective
 
 				int bFst = 0, bSnd = 0;         // current bytes
 				int index = 0;
-				int offset = 0;             // index of first match
+				ushort offset = 0;             // index of first match
 
 				// Read from both files until one of the file streams reaches the end.
 				while ((bFst = firstFile.ReadByte()) != -1 &&
 					  (bSnd = secondFile.ReadByte()) != -1)
 				{
-
 					bFst = firstFile.ReadByte();
 					bSnd = secondFile.ReadByte();
 
@@ -72,16 +69,15 @@ namespace MimeDetective
 						if (!match)
 						{
 							match = true;       // first match
-							offset = index;
+							offset = (ushort)index;
 						}
 
-						headerList.Add((byte)bFst);     // add match to header 
+						headerList.Add((byte)bFst);     // add match to header
 					}
 					else
 					{
 						if (match)
-						{      // if there was a match before 
-
+						{      // if there was a match before
 							// no more matching
 
 							if (missmatchCounter < maxNonMatch)
@@ -90,7 +86,7 @@ namespace MimeDetective
 								missmatchCounter++;
 							}
 							else
-								break;  // too much missmatches after the first match 
+								break;  // too much missmatches after the first match
 						}
 					}
 					if (headerList.Count == maxHeaderSize)
@@ -98,15 +94,17 @@ namespace MimeDetective
 					index++;
 				}
 
-				FileType type = null;
+				//FileType type = null;
 
 				if (headerList.Count((b) => b != null) >= minMatches)       // check for enough non null byte? ´s.
 				{
 					header = headerList.ToArray();
-					type = new FileType(header, offset, first.Extension, mimeType);
+					return new FileType(header, offset, first.Extension, mimeType);
 				}
-
-				return type;
+				else
+				{
+					return new FileType(null, null, null);
+				}
 			}
 		}
 	}

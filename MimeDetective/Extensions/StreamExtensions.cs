@@ -47,6 +47,7 @@ namespace MimeDetective.Extensions
 		/// </summary>
 		/// <param name="file">The FileInfo object.</param>
 		/// <returns>FileType or null not identified</returns>
+		/*
 		public static FileType GetFileTypeViaTempFile(this Stream stream)
 		{
 			FileType fileType = null;
@@ -68,5 +69,6 @@ namespace MimeDetective.Extensions
 			}
 			return fileType;
 		}
+		*/
 	}
 }
