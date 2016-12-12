@@ -43,7 +43,7 @@ namespace MimeDetective
 			return new FileType(data, file.Extension, mimeType, offset);
 		}
 
-		public static FileType LearnMimeType(FileInfo first, FileInfo second, string mimeType, int maxHeaderSize = 12, int minMatches = 2, int maxNonMatch = 3)
+		public static FileType? LearnMimeType(FileInfo first, FileInfo second, string mimeType, int maxHeaderSize = 12, int minMatches = 2, int maxNonMatch = 3)
 		{
 			byte?[] header = null;
 
@@ -105,7 +105,7 @@ namespace MimeDetective
 				}
 				else
 				{
-					return new FileType(null, null, null);
+					return null;
 				}
 			}
 		}

@@ -209,6 +209,7 @@ namespace MimeDetective
 
 		#region Main Methods
 
+		/*
 		public static void SaveToXmlFile(string path)
 		{
 			using (FileStream file = File.OpenWrite(path))
@@ -233,6 +234,7 @@ namespace MimeDetective
 				//Array.Copy(tmpTypes, 0, Types, typeOrgLenth, tmpTypes.Length);
 			}
 		}
+		*/
 
 		/*
 		public static FileType GetFileType(FileInfo file)
