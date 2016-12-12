@@ -11,6 +11,7 @@ install:
 build_script:
 - ps: ./Build.ps1
 test_script:
+  - mklink /J Data ./test/MimeDetective.Tests/Data
   - nuget.exe install OpenCover -ExcludeVersion
   - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[MimeDetective]*" -target:"dotnet.exe" "-targetargs:test test\MimeDetective.Tests" -returntargetcode -hideskipped:All -output:coverage.xml
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
