@@ -9,7 +9,7 @@ namespace MimeDetective
     /// A set of extension methods for use with document formats.
     /// </summary>
     public static partial class FileInfoExtensions
-    {   
+    {
         /// <summary>
         /// Determines whether the specified file is RTF document.
         /// </summary>
@@ -44,7 +44,31 @@ namespace MimeDetective
         /// </returns>
         public static bool IsWord(this FileInfo fileInfo)
         {
-            return fileInfo.IsType(MimeTypes.WORD);
+            return (fileInfo.IsType(MimeTypes.WORD) || fileInfo.IsType(MimeTypes.WORDX));
+        }
+
+        /// <summary>
+        /// Determines whether the specified file info is ms-word document file
+        /// </summary>
+        /// <param name="fileInfo">The file info.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified file info is doc; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsPowerPoint(this FileInfo fileInfo)
+        {
+            return (fileInfo.IsType(MimeTypes.PPT) || fileInfo.IsType(MimeTypes.PPTX));
+        }
+
+        /// <summary>
+        /// Determines whether the specified file info is ms-word document file
+        /// </summary>
+        /// <param name="fileInfo">The file info.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified file info is doc; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsExcel(this FileInfo fileInfo)
+        {
+            return (fileInfo.IsType(MimeTypes.EXCEL) || fileInfo.IsType(MimeTypes.EXCELX));
         }
     }
 }

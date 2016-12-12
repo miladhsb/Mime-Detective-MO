@@ -12,7 +12,7 @@ namespace MimeDetective
 		/// <summary>
 		/// Read header of a file and depending on the information in the header
 		/// return object FileType.
-		/// Return null in case when the file type is not identified. 
+		/// Return null in case when the file type is not identified.
 		/// Throws Application exception if the file can not be read or does not exist
 		/// </summary>
 		/// <param name="file">The FileInfo object.</param>
@@ -89,30 +89,6 @@ namespace MimeDetective
 		}
 
 		/// <summary>
-		/// Determines whether the specified file is MS Excel spreadsheet
-		/// </summary>
-		/// <param name="fileInfo">The FileInfo</param>
-		/// <returns>
-		///   <c>true</c> if the specified file info is excel; otherwise, <c>false</c>.
-		/// </returns>
-		public static bool IsExcel(this FileInfo fileInfo)
-		{
-			return fileInfo.IsType(MimeTypes.EXCEL);
-		}
-
-		/// <summary>
-		/// Determines whether the specified file is Microsoft PowerPoint Presentation
-		/// </summary>
-		/// <param name="fileInfo">The FileInfo object.</param>
-		/// <returns>
-		///   <c>true</c> if the specified file info is PPT; otherwise, <c>false</c>.
-		/// </returns>
-		public static bool IsPpt(this FileInfo fileInfo)
-		{
-			return fileInfo.IsType(MimeTypes.PPT);
-		}
-
-		/// <summary>
 		/// Checks if the file is executable
 		/// </summary>
 		/// <param name="fileInfo"></param>
@@ -124,9 +100,9 @@ namespace MimeDetective
 
 		/// <summary>
 		/// Check if the file is Microsoft Installer.
-		/// Beware, many Microsoft file types are starting with the same header. 
-		/// So use this one with caution. If you think the file is MSI, just need to confirm, use this method. 
-		/// But it could be MSWord or MSExcel, or Powerpoint... 
+		/// Beware, many Microsoft file types are starting with the same header.
+		/// So use this one with caution. If you think the file is MSI, just need to confirm, use this method.
+		/// But it could be MSWord or MSExcel, or Powerpoint...
 		/// </summary>
 		/// <param name="fileInfo"></param>
 		/// <returns></returns>

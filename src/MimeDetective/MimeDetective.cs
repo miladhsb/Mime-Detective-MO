@@ -28,6 +28,7 @@ namespace MimeDetective
 		public static FileType LearnMimeType(FileInfo file, string mimeType, int headerSize, ushort offset = 0)
 		{
 			byte?[] data = new byte?[headerSize];
+
 			using (FileStream stream = file.OpenRead())
 			{
 				int b = 0;
@@ -38,7 +39,8 @@ namespace MimeDetective
 						break;
 				}
 			}
-			return new FileType(data, offset, file.Extension, mimeType);
+
+			return new FileType(data, file.Extension, mimeType, offset);
 		}
 
 		public static FileType LearnMimeType(FileInfo first, FileInfo second, string mimeType, int maxHeaderSize = 12, int minMatches = 2, int maxNonMatch = 3)
@@ -51,7 +53,7 @@ namespace MimeDetective
 			using (Stream secondFile = second.OpenRead())
 			{
 				bool match = false;
-				int missmatchCounter = 0;       // missmatches after first match
+				int missmatchCounter = 0;       // mismatches after first match
 
 				int bFst = 0, bSnd = 0;         // current bytes
 				int index = 0;
@@ -86,7 +88,7 @@ namespace MimeDetective
 								missmatchCounter++;
 							}
 							else
-								break;  // too much missmatches after the first match
+								break;  // too much mismatches after the first match
 						}
 					}
 					if (headerList.Count == maxHeaderSize)
@@ -99,7 +101,7 @@ namespace MimeDetective
 				if (headerList.Count((b) => b != null) >= minMatches)       // check for enough non null byte? ´s.
 				{
 					header = headerList.ToArray();
-					return new FileType(header, offset, first.Extension, mimeType);
+					return new FileType(header, first.Extension, mimeType, offset);
 				}
 				else
 				{
