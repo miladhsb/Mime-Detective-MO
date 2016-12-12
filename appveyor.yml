@@ -3,6 +3,7 @@ skip_tags: true
 image: Visual Studio 2015
 configuration: Release
 install:
+  - mklink /J Data "test/Mime-Detective.Tests/Data"
   - ps: mkdir -Force ".\build\" | Out-Null
   - ps: Invoke-WebRequest "https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview2/scripts/obtain/dotnet-install.ps1" -OutFile ".\build\installcli.ps1"
   - ps: $env:DOTNET_INSTALL_DIR = "$pwd\.dotnetcli"
@@ -11,7 +12,6 @@ install:
 build_script:
 - ps: ./Build.ps1
 test_script:
-  - mklink /J Data "./test/Mime-Detective.Tests/Data"
   - nuget.exe install OpenCover -ExcludeVersion
   - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[Mime-Detective]*" -target:"dotnet.exe" "-targetargs:test test\Mime-Detective.Tests" -returntargetcode -hideskipped:All -output:coverage.xml
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
