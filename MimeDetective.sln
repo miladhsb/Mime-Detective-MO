@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MimeDetective", "src\MimeDetective\MimeDetective.xproj", "{9E3066B2-B987-4E32-83D4-16A20E3BA219}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MimeDetective.Tests", "tests\MimeDetective.Tests.xproj", "{CB3A9BEA-C247-4FEB-8670-98E3034FC214}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MimeDetective.Tests", "test\MimeDetective.Tests\MimeDetective.Tests.xproj", "{CB3A9BEA-C247-4FEB-8670-98E3034FC214}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

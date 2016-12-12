@@ -31,7 +31,11 @@ namespace MimeDetective.Tests
 
 			Assert.True(elf == MimeTypes.ELF);
 
-			Assert.False(elf != MimeTypes.DLL_EXE);
+			Assert.False(elf == MimeTypes.DLL_EXE);
+
+			Assert.False(elf != MimeTypes.ELF);
+
+			Assert.True(elf != MimeTypes.DLL_EXE);
 		}
 
 		[Fact]
