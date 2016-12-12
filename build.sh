@@ -5,7 +5,7 @@ for path in src/*/project.json; do
     dotnet build ${dirname} -c Release
 done
 
-for path in test/MimeDetective.Tests/project.json; do
+for path in test/Mime-Detective.Tests/project.json; do
     dirname="$(dirname "${path}")"
     dotnet build ${dirname} -f netcoreapp1.0 -c Release
     dotnet test ${dirname} -f netcoreapp1.0  -c Release

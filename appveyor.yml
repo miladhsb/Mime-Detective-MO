@@ -11,14 +11,14 @@ install:
 build_script:
 - ps: ./Build.ps1
 test_script:
-  - mklink /J Data ./test/MimeDetective.Tests/Data
+  - mklink /J Data ./test/Mime-Detective.Tests/Data
   - nuget.exe install OpenCover -ExcludeVersion
-  - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[MimeDetective]*" -target:"dotnet.exe" "-targetargs:test test\MimeDetective.Tests" -returntargetcode -hideskipped:All -output:coverage.xml
+  - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[Mime-Detective]*" -target:"dotnet.exe" "-targetargs:test test\Mime-Detective.Tests" -returntargetcode -hideskipped:All -output:coverage.xml
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
   - pip install codecov
   - codecov -f "coverage.xml"
 artifacts:
-- path: artifacts/MimeDetective.*.nupkg
+- path: artifacts/Mime-Detective.*.nupkg
 deploy:
 - provider: NuGet
   api_key:
@@ -29,7 +29,7 @@ deploy:
 - provider: GitHub
   auth_token:
     secure: Fy6p3nueWv95xmQRo9Xbj5OgRcki2yZJ0IYJSAIvAi1D7pUI+0w01oy5Xzxe0HLc
-  artifact: /MimeDetective.*\.nupkg/
+  artifact: /Mime-Detective.*\.nupkg/
   tag: v$(appveyor_build_version)
   on:
     branch: master
