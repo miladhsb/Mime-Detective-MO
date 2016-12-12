@@ -1,15 +1,15 @@
 {
-	"packOptions": {
-		"summary": "MimeDetective",
-		"tags": [ "mime", "mime-type", "content-type", "contenttype" ],
-		"owners": [ "clarkis117" ],
-		"projectUrl": "https://github.com/clarkis117/Mime-Detective",
-		"licenseUrl": "https://mit-license.org/",
-		"repository": {
-			"type": "git",
-			"url": "https://github.com/clarkis117/Mime-Detective.git"
-		}
-	},
+  "packOptions": {
+    "summary": "MimeDetective",
+    "tags": [ "mime", "mime-type", "content-type", "contenttype" ],
+    "owners": [ "clarkis117" ],
+    "projectUrl": "https://github.com/clarkis117/Mime-Detective",
+    "licenseUrl": "https://mit-license.org/",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/clarkis117/Mime-Detective.git"
+    }
+  },
 
 	"version": "1.0.0",
 	"description": "MimeDetective Class Library .NET Core Fork",

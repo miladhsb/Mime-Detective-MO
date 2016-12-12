@@ -11,13 +11,11 @@ install:
 build_script:
 - ps: ./Build.ps1
 test_script:
-  - cd .\test\MimeDetective.Tests
   - nuget.exe install OpenCover -ExcludeVersion
-  - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[MimeDetective]*" -target:"dotnet.exe" "-targetargs:test -returntargetcode -hideskipped:All -output:coverage.xml
+  - OpenCover\tools\OpenCover.Console.exe -register:user -filter:"+[MimeDetective]*" -target:"dotnet.exe" "-targetargs:test test\MimeDetective.Tests" -returntargetcode -hideskipped:All -output:coverage.xml
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
   - pip install codecov
   - codecov -f "coverage.xml"
-  - cd ..\..\
 artifacts:
 - path: artifacts/MimeDetective.*.nupkg
 deploy:
