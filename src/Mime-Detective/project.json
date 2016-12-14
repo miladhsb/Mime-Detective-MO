@@ -1,32 +1,32 @@
 {
-	"packOptions": {
-		"summary": "Mime-Detective Class Library, .NET Core Fork",
-		"tags": [ "mime", "mime-type", "content-type", "contenttype" ],
-		"owners": [ "clarkis117" ],
-		"projectUrl": "https://github.com/clarkis117/Mime-Detective",
-		"licenseUrl": "https://github.com/clarkis117/Mime-Detective/blob/master/LICENSE",
-		"repository": {
-			"type": "git",
-			"url": "https://github.com/clarkis117/Mime-Detective.git"
-		}
-	},
+  "packOptions": {
+    "summary": "Mime-Detective Class Library, .NET Core Fork",
+    "tags": [ "mime", "mime-type", "content-type", "contenttype" ],
+    "owners": [ "clarkis117" ],
+    "projectUrl": "https://github.com/clarkis117/Mime-Detective",
+    "licenseUrl": "https://github.com/clarkis117/Mime-Detective/blob/master/LICENSE",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/clarkis117/Mime-Detective.git"
+    }
+  },
 
-	"name": "Mime-Detective",
-	"title": "Mime-Detective",
-	"version": "0.0.1",
-	"description": "Mime-Detective Class Library, .NET Core Fork",
-	"authors": [ "Mime-Detective Collaborators" ],
+  "name": "Mime-Detective",
+  "title": "Mime-Detective",
+  "version": "0.0.1",
+  "description": "Mime-Detective Class Library, .NET Core Fork",
+  "authors": [ "Mime-Detective Collaborators" ],
 
-	"dependencies": {
-		"NETStandard.Library": "1.6.0"
-	},
+  "dependencies": {
+    "NETStandard.Library": "1.6.1"
+  },
 
-	"frameworks": {
-		"net4.5": {
-		},
-		"net4.6": {
-		},
-		"netstandard1.3": {
-		}
-	}
+  "frameworks": {
+    "net4.5": {
+    },
+    "net4.6": {
+    },
+    "netstandard1.3": {
+    }
+  }
 }
