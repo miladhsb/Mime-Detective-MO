@@ -22,6 +22,10 @@
 	},
 
 	"frameworks": {
+		"net4.5": {
+		},
+		"net4.6": {
+		},
 		"netstandard1.3": {
 		}
 	}

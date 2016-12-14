@@ -20,6 +20,10 @@
         "dnxcore50",
         "portable-net45+win8"
       ]
+    },
+    "net4.5.2": {
+    },
+    "net4.6": {
     }
   }
 }
