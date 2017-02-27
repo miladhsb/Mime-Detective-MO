@@ -6,14 +6,14 @@ using Xunit;
 
 namespace MimeDetective.Tests
 {
-	public class FileTypeTests
+	public class FileType
 	{
 		[Fact]
 		public void Constructors()
 		{
-			var info = new FileType(new byte?[] { 0x12, 0x14, 0x13, 0x15, 0x16 }, "png", "image/png", 4);
+			var info = new global::MimeDetective.FileType(new byte?[] { 0x12, 0x14, 0x13, 0x15, 0x16 }, "png", "image/png", 4);
 
-			Assert.Throws(typeof(ArgumentNullException), () => { var a = new FileType(null, "png", "image/png", 4); });
+			Assert.Throws(typeof(ArgumentNullException), () => { var a = new global::MimeDetective.FileType(null, "png", "image/png", 4); });
 		}
 
 		[Fact]

@@ -1,4 +1,5 @@
 ﻿using MimeDetective;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
@@ -20,4 +21,15 @@ namespace MimeDetective.Utilities
 			Assert.False(info.GetFileType() != type);
 		}
 	}
+
+	/*
+	public class MyClass
+	{
+		[Fact]
+		public void test()
+		{
+			Assert.ThrowsAny<Exception>(() => { TypeComparisions.AssertIsType(null, MimeTypes.AES).Wait(); });
+		}
+	}
+	*/
 }

@@ -9,7 +9,7 @@ using MimeDetective.Utilities;
 
 namespace MimeDetective.Tests.Documents
 {
-	public class DocumentsTests
+	public class MsOfficeFormats
 	{
 		public const string DocsPath = "./Data/Documents/test.";
 
@@ -18,7 +18,7 @@ namespace MimeDetective.Tests.Documents
 		{
 			var info = new FileInfo(DocsPath + "docx");
 
-			var a = System.IO.Directory.GetCurrentDirectory();
+			var a = Directory.GetCurrentDirectory();
 
 			var fileInfo = await info.GetFileTypeAsync();
 

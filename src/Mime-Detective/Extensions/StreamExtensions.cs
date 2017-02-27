@@ -14,7 +14,7 @@ namespace MimeDetective.Extensions
 		/// <summary>
 		/// Read header of a stream and depending on the information in the header
 		/// return object FileType.
-		/// Return null in case when the file type is not identified. 
+		/// Return null in case when the file type is not identified.
 		/// Throws Application exception if the file can not be read or does not exist
 		/// </summary>
 		/// <param name="file">The FileInfo object.</param>
@@ -28,7 +28,7 @@ namespace MimeDetective.Extensions
 		/// <summary>
 		/// Read header of a stream and depending on the information in the header
 		/// return object FileType.
-		/// Return null in case when the file type is not identified. 
+		/// Return null in case when the file type is not identified.
 		/// Throws Application exception if the file can not be read or does not exist
 		/// </summary>
 		/// <param name="file">The FileInfo object.</param>
@@ -42,7 +42,7 @@ namespace MimeDetective.Extensions
 		/// <summary>
 		/// Read header of a stream and depending on the information in the header
 		/// return object FileType.
-		/// Return null in case when the file type is not identified. 
+		/// Return null in case when the file type is not identified.
 		/// Throws Application exception if the file can not be read or does not exist
 		/// </summary>
 		/// <param name="file">The FileInfo object.</param>

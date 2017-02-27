@@ -209,7 +209,6 @@ namespace MimeDetective
 
 		#region Main Methods
 
-		/*
 		public static void SaveToXmlFile(string path)
 		{
 			using (FileStream file = File.OpenWrite(path))
@@ -226,15 +225,8 @@ namespace MimeDetective
 				var serializer = new System.Xml.Serialization.XmlSerializer(Types.GetType());
 
 				return (FileType[])serializer.Deserialize(file);
-
-				//int typeOrgLenth = Types.Length;
-
-				//Array.Resize(ref Types, Types.Length + tmpTypes.Length);
-
-				//Array.Copy(tmpTypes, 0, Types, typeOrgLenth, tmpTypes.Length);
 			}
 		}
-		*/
 
 		/*
 		public static FileType GetFileType(FileInfo file)
@@ -247,7 +239,6 @@ namespace MimeDetective
 		/// Read header of a file and depending on the information in the header
 		/// return object FileType.
 		/// Return null in case when the file type is not identified.
-		/// Throws Application exception if the file can not be read or does not exist
 		/// </summary>
 		/// <param name="fileHeaderReadFunc">A function which returns the bytes found</param>
 		/// <param name="fileFullName">If given and file typ is a zip file, a check for docx and xlsx is done</param>
@@ -294,13 +285,13 @@ namespace MimeDetective
 								var officeXml = CheckForDocxAndXlsxStream(zipData);
 
 								if (officeXml != null)
-									return officeXml.Value;
+									return officeXml;
 
 								//check for open office formats
 								var openOffice = CheckForOdtAndOds(zipData);
 
 								if (openOffice != null)
-									return openOffice.Value;
+									return openOffice;
 							}
 						}
 					}
@@ -311,7 +302,8 @@ namespace MimeDetective
 				}
 			}
 
-			throw new Exception("No file type match found");
+			//no match return null
+			return null;
 		}
 
 		/// <summary>
@@ -333,7 +325,7 @@ namespace MimeDetective
 			return result;
 		}
 
-		private static FileType? CheckForDocxAndXlsxStream(ZipArchive zipData)
+		private static FileType CheckForDocxAndXlsxStream(ZipArchive zipData)
 		{
 			if (zipData.Entries.Any(e => e.FullName.StartsWith("word/")))
 				return WORDX;
@@ -365,7 +357,7 @@ namespace MimeDetective
 		*/
 
 		//check for open doc formats
-		private static FileType? CheckForOdtAndOds(ZipArchive zipFile)
+		private static FileType CheckForOdtAndOds(ZipArchive zipFile)
 		{
 			var ooMimeType = zipFile.Entries.FirstOrDefault(e => e.FullName == "mimetype");
 
@@ -431,7 +423,7 @@ namespace MimeDetective
 			}
 			catch (Exception e) // file could not be found/read
 			{
-				throw new Exception($"Could not read file: {e.Message}");
+				throw new System.IO.IOException($"Could not read {nameof(file)}", e);
 			}
 
 			return header;
@@ -454,7 +446,7 @@ namespace MimeDetective
 			}
 			catch (Exception e) // file could not be found/read
 			{
-				throw new System.IO.FileLoadException($"Could not read file: {e.Message}", file.FullName, e);
+				throw new System.IO.IOException($"Could not read {nameof(file)}", e);
 			}
 
 			return header;
@@ -470,8 +462,6 @@ namespace MimeDetective
 		{
 			byte[] header = new byte[MaxHeaderSize];
 
-			try  // read stream
-			{
 				if (!stream.CanRead)
 					throw new System.IO.IOException("Could not read from Stream");
 
@@ -479,11 +469,6 @@ namespace MimeDetective
 					stream.Seek(0, SeekOrigin.Begin);
 
 				stream.Read(header, 0, MaxHeaderSize);
-			}
-			catch (Exception e) // file could not be found/read
-			{
-				throw new Exception("Could not read Stream : " + e.Message);
-			}
 
 			return header;
 		}
@@ -498,32 +483,29 @@ namespace MimeDetective
 		{
 			byte[] header = new byte[MaxHeaderSize];
 
-			try  // read stream
-			{
 				if (!stream.CanRead)
-					throw new System.IO.IOException("Could not read from Stream");
+					throw new IOException($"Could not read from {nameof(stream)}");
 
 				if (stream.Position > 0)
 					stream.Seek(0, SeekOrigin.Begin);
 
 				await stream.ReadAsync(header, 0, MaxHeaderSize);
-			}
-			catch (Exception e) // file could not be found/read
-			{
-				throw new Exception("Could not read Stream : " + e.Message);
-			}
 
 			return header;
 		}
 
-		internal static IReadOnlyList<byte> ReadHeaderFromByteArray(byte[] byteArray, ushort MaxHeaderSize)
+		internal static IReadOnlyList<byte> ReadHeaderFromByteArray(IReadOnlyList<byte> byteArray, ushort MaxHeaderSize)
 		{
-			if (byteArray.Length < MaxHeaderSize)
-				throw new ArgumentException($"{nameof(byteArray)}:{byteArray} Is smaller than {nameof(MaxHeaderSize)}:{MaxHeaderSize}", nameof(byteArray));
+			if (byteArray.Count < MaxHeaderSize)
+				throw new ArgumentException($"{nameof(byteArray)}:{byteArray.Count} Is smaller than {nameof(MaxHeaderSize)}:{MaxHeaderSize}", nameof(byteArray));
 
 			byte[] header = new byte[MaxHeaderSize];
 
-			Array.Copy(byteArray, header, MaxHeaderSize);
+			//Array.Copy(byteArray, header, MaxHeaderSize);
+			for (int i = 0; i < MaxHeaderSize; i++)
+			{
+				header[i] = byteArray[i];
+			}
 
 			return header;
 		}

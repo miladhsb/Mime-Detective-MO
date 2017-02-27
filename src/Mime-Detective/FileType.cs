@@ -2,28 +2,12 @@
 
 namespace MimeDetective
 {
-	/*
-	public struct FileDetectionResult
-	{
-		public readonly FileType FileType;
-
-		public readonly bool WasFileTypeDetected;
-
-		public FileDetectionResult(bool wasFileTypeDetected, FileType fileType)
-		{
-			FileType = fileType;
-
-			WasFileTypeDetected = wasFileTypeDetected;
-		}
-	}
-	*/
-
 	/// <summary>
 	/// Little data structure to hold information about file types.
 	/// Holds information about binary header at the start of the file
 	/// these are mostly static they can be structs
 	/// </summary>
-	public struct FileType
+	public class FileType
 	{
 		public byte?[] Header { get; }
 		public ushort HeaderOffset { get; }
@@ -42,7 +26,7 @@ namespace MimeDetective
 		{
 			//header cannot be null, file type normal operation requires the data
 			if (header == null)
-				throw new ArgumentNullException(nameof(header), "cannot be null file type needs file header data");
+				throw new ArgumentNullException(nameof(header), "cannot be null, FileType needs file header data");
 
 			Header = header;
 			HeaderOffset = offset;
