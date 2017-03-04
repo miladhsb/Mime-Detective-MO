@@ -41,7 +41,7 @@ namespace MimeDetective
 		/// <returns>
 		///   <c>true</c> if file of the one of the provided types; otherwise, <c>false</c>.
 		/// </returns>
-		public static bool isFileOfTypes(this FileInfo file, List<FileType> requiredTypes)
+		public static bool IsFileOfTypes(this FileInfo file, List<FileType> requiredTypes)
 		{
 			FileType currentType = file.GetFileType();
 
@@ -60,11 +60,11 @@ namespace MimeDetective
 		/// <returns>
 		///   <c>true</c> if file of the one of the provided types; otherwise, <c>false</c>.
 		/// </returns>
-		public static bool isFileOfTypes(this FileInfo file, String CSV)
+		public static bool IsFileOfTypes(this FileInfo file, String CSV)
 		{
 			List<FileType> providedTypes = MimeTypes.GetFileTypesByExtensions(CSV);
 
-			return file.isFileOfTypes(providedTypes);
+			return file.IsFileOfTypes(providedTypes);
 		}
 
 

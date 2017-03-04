@@ -13,7 +13,7 @@
 
   "name": "Mime-Detective",
   "title": "Mime-Detective",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Mime-Detective Class Library, .NET Core Fork",
   "authors": [ "Mime-Detective Collaborators" ],
 
