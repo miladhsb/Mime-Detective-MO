@@ -11,14 +11,6 @@
   "buildOptions": {"copyToOutput": "Data\\"},
 
   "frameworks": {
-    "netcoreapp1.0": {
-      "dependencies": {
-        "Microsoft.NETCore.App": {
-          "type": "platform",
-		  "version": "1.0.3"
-        }
-      }
-    },
     "netcoreapp1.1": {
       "dependencies": {
         "Microsoft.NETCore.App": {
