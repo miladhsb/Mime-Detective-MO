@@ -18,8 +18,7 @@
   "authors": [ "Mime-Detective Collaborators" ],
 
   "dependencies": {
-	"NETStandard.Library": "1.6.1",
-	"System.Xml.XmlSerializer": "*"
+	"NETStandard.Library": "1.6.1"
   },
 
   "frameworks": {
@@ -60,6 +59,9 @@
       }
     },
     "netstandard1.3": {
+      "dependencies": {
+        "System.Xml.XmlSerializer": "*"
+      }
     }
   }
 }
