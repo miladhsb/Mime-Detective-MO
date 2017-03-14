@@ -245,15 +245,15 @@ namespace MimeDetective
 		/// <returns>FileType or null not identified</returns>
 		public static FileType GetFileType(Func<IReadOnlyList<byte>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
 		{
-			return getFileType(fileHeaderReadFunc(), stream, data);
+			return GetFileType(fileHeaderReadFunc(), stream, data);
 		}
 
 		public static async Task<FileType> GetFileTypeAsync(Func<Task<IReadOnlyList<byte>>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
 		{
-			return getFileType(await fileHeaderReadFunc(), stream, data);
+			return GetFileType(await fileHeaderReadFunc(), stream, data);
 		}
 
-		private static FileType getFileType(IReadOnlyList<byte> fileHeader, Stream stream = null, byte[] data = null)
+		private static FileType GetFileType(IReadOnlyList<byte> fileHeader, Stream stream = null, byte[] data = null)
 		{
 			if (stream == null && data == null)
 				throw new ArgumentNullException($"{nameof(stream)} : {nameof(data)}", "both file data arguments are null");
@@ -274,7 +274,7 @@ namespace MimeDetective
 					// there may be situations where the file name is not given
 					if (type.Equals(ZIP))
 					{
-						using (Stream fileData = stream != null ? stream : new MemoryStream(data))
+						using (Stream fileData = stream ?? new MemoryStream(data))
 						{
 							if (fileData.Position > 0)
 								fileData.Seek(0, SeekOrigin.Begin);

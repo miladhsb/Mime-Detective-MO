@@ -10,8 +10,11 @@ namespace MimeDetective
 	public class FileType
 	{
 		public byte?[] Header { get; }
+
 		public ushort HeaderOffset { get; }
+
 		public string Extension { get; }
+
 		public string Mime { get; }
 
 		/// <summary>
@@ -24,11 +27,8 @@ namespace MimeDetective
 		/// <param name="mime">The description of MIME.</param>
 		public FileType(byte?[] header, string extension, string mime, ushort offset = 0)
 		{
-			//header cannot be null, file type normal operation requires the data
-			if (header == null)
-				throw new ArgumentNullException(nameof(header), "cannot be null, FileType needs file header data");
+			Header = header ?? throw new ArgumentNullException(nameof(header), $"cannot be null, {nameof(FileType)} needs file header data");
 
-			Header = header;
 			HeaderOffset = offset;
 			Extension = extension;
 			Mime = mime;
