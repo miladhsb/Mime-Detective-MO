@@ -29,6 +29,13 @@
 	<Reference Include="System.IO.Compression" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+	<Reference Include="System" />
+	<Reference Include="Microsoft.CSharp" />
+	<Reference Include="System.IO" />
+	<Reference Include="System.IO.Compression" />
+  </ItemGroup>
+
   <ItemGroup Condition=" ' $(TargetFramework)' == 'netstandard1.3' ">
 	<PackageReference Include="System.IO" />
 	<PackageReference Include="System.IO.Compression" />

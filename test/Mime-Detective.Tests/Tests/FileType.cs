@@ -25,6 +25,22 @@ namespace MimeDetective.Tests
 		}
 
 		[Fact]
+		public void	NullEquals()
+		{
+			var elf = MimeTypes.ELF;
+
+			Assert.False(elf == null);
+
+			Assert.False(null == elf);
+
+			Assert.True(elf != null);
+
+			Assert.True(null != elf);
+
+			Assert.False(elf.Equals(null));
+		}
+
+		[Fact]
 		public void EqualsOperatorOverloads()
 		{
 			var elf = MimeTypes.ELF;

@@ -13,6 +13,10 @@ namespace MimeDetective.Tests
 	{
 		const string GoodFile = "./data/images/test.jpg";
 
+		const string GoodXmlFile = "./data/Documents/test.docx";
+
+		const string GoodZipFile = "./data/images.zip";
+
 		const string BadFile = "./data/empty.jpg";
 
 		const string NonexistentFile = "./data/nonexistent.jpg";
@@ -61,6 +65,7 @@ namespace MimeDetective.Tests
 		//load from stream
 			//attempt to load from good stream
 			//attempt to load from empty stream
+			//stream shouldn't be closed
 
 		[Fact]
 		public async Task FromStream()
@@ -100,6 +105,37 @@ namespace MimeDetective.Tests
 			var nullReturn = await emptyStream.GetFileTypeAsync();
 
 			Assert.Null(nullReturn);
+		}
+
+		[Theory]
+		[InlineData(GoodFile, "jpg")]
+		[InlineData(GoodXmlFile, "docx")]
+		[InlineData(GoodZipFile, "zip")]
+		public async Task StreamShouldStillBeOpen(string path, string ext)
+		{
+			var fileInfo = new FileInfo(path);
+
+			var fileStream = fileInfo.OpenRead();
+			
+			var fileType = await fileStream.GetFileTypeAsync();
+
+			Assert.NotNull(fileType);
+
+			Assert.Equal(ext, fileType.Extension);
+
+			Assert.True(fileStream.CanRead);
+
+			Assert.True(fileStream.CanSeek);
+
+			Assert.False(fileStream.CanWrite);
+
+			fileStream.Dispose();
+
+			Assert.False(fileStream.CanRead);
+
+			Assert.False(fileStream.CanSeek);
+
+			Assert.False(fileStream.CanWrite);
 		}
 
 		//load from byte array

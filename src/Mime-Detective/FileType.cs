@@ -36,35 +36,35 @@ namespace MimeDetective
 
 		public static bool operator ==(FileType a, FileType b)
 		{
-			return a.Equals(b);
+			if (a is null && b is null)
+				return true;
+
+			if (b is null)
+				return a.Equals(b);
+			else
+				return b.Equals(a);
 		}
 
-		public static bool operator !=(FileType a, FileType b)
-		{
-			return !(a.Equals(b));
-		}
+		public static bool operator !=(FileType a, FileType b) => !(a == b);
 
 		public override bool Equals(object other)
 		{
+			if (other is null)
+				return false;
+
 			if (!(other is FileType))
 				return false;
 
 			FileType otherType = (FileType)other;
 
-			if (this.Extension == otherType.Extension && this.Mime == otherType.Mime)
+			if (Extension == otherType.Extension && Mime == otherType.Mime)
 				return true;
 
 			return base.Equals(other);
 		}
 
-		public override int GetHashCode()
-		{
-			return base.GetHashCode();
-		}
+		public override int GetHashCode() => (Header.GetHashCode() ^ HeaderOffset ^ Extension.GetHashCode() ^ Mime.GetHashCode());
 
-		public override string ToString()
-		{
-			return Extension;
-		}
+		public override string ToString() => Extension;
 	}
 }

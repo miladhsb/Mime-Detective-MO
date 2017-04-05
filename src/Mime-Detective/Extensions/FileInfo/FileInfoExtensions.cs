@@ -94,9 +94,7 @@ namespace MimeDetective
 		/// <param name="fileInfo"></param>
 		/// <returns></returns>
 		public static bool IsExe(this FileInfo fileInfo)
-		{
-			return fileInfo.IsType(MimeTypes.DLL_EXE);
-		}
+			=> fileInfo.IsType(MimeTypes.DLL_EXE);
 
 		/// <summary>
 		/// Check if the file is Microsoft Installer.

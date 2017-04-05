@@ -23,8 +23,7 @@ namespace MimeDetective
 		/// <param name="file">The FileInfo object.</param>
 		/// <returns>FileType or null not identified</returns>
 		public static FileType GetFileType(this byte[] bytes)
-		{
-			return MimeTypes.GetFileType(() => MimeTypes.ReadHeaderFromByteArray(bytes, MimeTypes.MaxHeaderSize), null, bytes);
-		}
+			=> MimeTypes.GetFileType(() => MimeTypes.ReadHeaderFromByteArray(bytes, MimeTypes.MaxHeaderSize), null, bytes);
+		
 	}
 }

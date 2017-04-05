@@ -228,13 +228,6 @@ namespace MimeDetective
 			}
 		}
 
-		/*
-		public static FileType GetFileType(FileInfo file)
-		{
-			return MimeTypes.GetFileType(() => MimeTypes.ReadFileHeader(file, MimeTypes.MaxHeaderSize), file);
-		}
-		*/
-
 		/// <summary>
 		/// Read header of a file and depending on the information in the header
 		/// return object FileType.
@@ -253,10 +246,14 @@ namespace MimeDetective
 			return GetFileType(await fileHeaderReadFunc(), stream, data);
 		}
 
-		private static FileType GetFileType(IReadOnlyList<byte> fileHeader, Stream stream = null, byte[] data = null)
+		internal static FileType GetFileType(
+			IReadOnlyList<byte> fileHeader,
+			Stream stream = null,
+			byte[] data = null,
+			bool shouldDisposeStream = true)
 		{
-			if (stream == null && data == null)
-				throw new ArgumentNullException($"{nameof(stream)} : {nameof(data)}", "both file data arguments are null");
+			if (stream is null && data is null)
+				throw new ArgumentNullException($"{nameof(data)}:{nameof(stream)}", "both file data arguments are null");
 
 			// checking if it's binary (not really exact, but should do the job)
 			// shouldn't work with UTF-16 OR UTF-32 files
@@ -272,33 +269,38 @@ namespace MimeDetective
 				{
 					// check for docx and xlsx only if a file name is given
 					// there may be situations where the file name is not given
-					if (type.Equals(ZIP))
+					if (!type.Equals(ZIP))
+						return type;
+
+					Stream fileData = stream ?? new MemoryStream(data);
+
+					try
 					{
-						using (Stream fileData = stream ?? new MemoryStream(data))
+						if (fileData.Position > 0)
+							fileData.Seek(0, SeekOrigin.Begin);
+
+						using (ZipArchive zipData = new ZipArchive(fileData, ZipArchiveMode.Read, leaveOpen: true))
 						{
-							if (fileData.Position > 0)
-								fileData.Seek(0, SeekOrigin.Begin);
+							//check for office xml formats
+							var officeXml = CheckForDocxAndXlsxStream(zipData);
 
-							using (ZipArchive zipData = new ZipArchive(fileData))
-							{
-								//check for office xml formats
-								var officeXml = CheckForDocxAndXlsxStream(zipData);
+							if (officeXml != null)
+								return officeXml;
 
-								if (officeXml != null)
-									return officeXml;
+							//check for open office formats
+							var openOffice = CheckForOdtAndOds(zipData);
 
-								//check for open office formats
-								var openOffice = CheckForOdtAndOds(zipData);
-
-								if (openOffice != null)
-									return openOffice;
-							}
+							if (openOffice != null)
+								return openOffice;
 						}
 					}
-					else
+					finally
 					{
-						return type;
+						if(shouldDisposeStream)
+							fileData.Dispose();
 					}
+
+					return ZIP;
 				}
 			}
 
@@ -462,13 +464,13 @@ namespace MimeDetective
 		{
 			byte[] header = new byte[MaxHeaderSize];
 
-				if (!stream.CanRead)
-					throw new System.IO.IOException("Could not read from Stream");
+			if (!stream.CanRead)
+				throw new System.IO.IOException("Could not read from Stream");
 
-				if (stream.Position > 0)
-					stream.Seek(0, SeekOrigin.Begin);
+			if (stream.Position > 0)
+				stream.Seek(0, SeekOrigin.Begin);
 
-				stream.Read(header, 0, MaxHeaderSize);
+			stream.Read(header, 0, MaxHeaderSize);
 
 			return header;
 		}
@@ -483,13 +485,13 @@ namespace MimeDetective
 		{
 			byte[] header = new byte[MaxHeaderSize];
 
-				if (!stream.CanRead)
-					throw new IOException($"Could not read from {nameof(stream)}");
+			if (!stream.CanRead)
+				throw new IOException($"Could not read from {nameof(stream)}");
 
-				if (stream.Position > 0)
-					stream.Seek(0, SeekOrigin.Begin);
+			if (stream.Position > 0)
+				stream.Seek(0, SeekOrigin.Begin);
 
-				await stream.ReadAsync(header, 0, MaxHeaderSize);
+			await stream.ReadAsync(header, 0, MaxHeaderSize);
 
 			return header;
 		}

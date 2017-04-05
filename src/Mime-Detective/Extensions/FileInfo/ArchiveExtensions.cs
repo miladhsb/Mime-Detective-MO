@@ -15,9 +15,7 @@
         ///   <c>true</c> if the specified file info is zip; otherwise, <c>false</c>.
         /// </returns>
         public static bool IsZip(this FileInfo fileInfo)
-        {
-            return fileInfo.IsType(MimeTypes.ZIP);
-        }
+			=> fileInfo.IsType(MimeTypes.ZIP);
 
         /// <summary>
         /// Determines whether the specified file is RAR-archive.
@@ -27,8 +25,7 @@
         ///   <c>true</c> if the specified file info is RAR; otherwise, <c>false</c>.
         /// </returns>
         public static bool IsRar(this FileInfo fileInfo)
-        {
-            return fileInfo.IsType(MimeTypes.RAR);
-        }
+			=> fileInfo.IsType(MimeTypes.RAR);
+        
     }
 }
