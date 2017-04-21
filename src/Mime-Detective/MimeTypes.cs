@@ -255,6 +255,9 @@ namespace MimeDetective
 			if (stream is null && data is null)
 				throw new ArgumentNullException($"{nameof(data)}:{nameof(stream)}", "both file data arguments are null");
 
+			if (fileHeader.Count <= 0)
+				return null;
+
 			// checking if it's binary (not really exact, but should do the job)
 			// shouldn't work with UTF-16 OR UTF-32 files
 			if (!fileHeader.Any(b => b == 0))
@@ -363,7 +366,7 @@ namespace MimeDetective
 		{
 			var ooMimeType = zipFile.Entries.FirstOrDefault(e => e.FullName == "mimetype");
 
-			if (ooMimeType == null)
+			if (ooMimeType is null)
 				return null;
 
 			using (var textReader = new StreamReader(ooMimeType.Open()))
@@ -498,6 +501,7 @@ namespace MimeDetective
 
 		internal static IReadOnlyList<byte> ReadHeaderFromByteArray(IReadOnlyList<byte> byteArray, ushort MaxHeaderSize)
 		{
+			/*
 			if (byteArray.Count < MaxHeaderSize)
 				throw new ArgumentException($"{nameof(byteArray)}:{byteArray.Count} Is smaller than {nameof(MaxHeaderSize)}:{MaxHeaderSize}", nameof(byteArray));
 
@@ -510,6 +514,9 @@ namespace MimeDetective
 			}
 
 			return header;
+			*/
+
+			return byteArray;
 		}
 
 		#endregion Byte Header Get Methods

@@ -21,6 +21,14 @@ namespace MimeDetective.Tests
 
 		const string NonexistentFile = "./data/nonexistent.jpg";
 
+		const string smallTxtFile = "./data/Text/SuperSmall.txt";
+
+		//small ascii text files
+		const string oneByteFile = "./data/Text/oneCharFile.txt";
+		const string twoByteFile = "./data/Text/twoCharFile.txt";
+		const string threeByteFile = "./data/Text/threeCharFile.txt";
+
+
 		//load from fileinfo
 		//attempt to load from real file
 		//attempt to load from nonexistent file /badfile
@@ -172,7 +180,34 @@ namespace MimeDetective.Tests
 
 			var emptyBtyeArray = new byte[0];
 
-			Assert.ThrowsAny<Exception>(() => emptyBtyeArray.GetFileType());
+			Assert.Null(emptyBtyeArray.GetFileType());
+
+			//Assert.ThrowsAny<Exception>(() => emptyBtyeArray.GetFileType());
+		}
+
+		[Theory]
+		[InlineData(smallTxtFile)]
+		[InlineData(oneByteFile, Skip = "Planned in text detector for 1.0.0")]
+		[InlineData(twoByteFile, Skip = "Planned in text detector for 1.0.0")]
+		[InlineData(threeByteFile, Skip = "Planned in text detector for 1.0.0")]
+		public async Task FromSmallTxtFile(string file)
+		{
+			FileInfo smallTxt = new FileInfo(file);
+
+			using (var stream = smallTxt.OpenRead())
+			{
+				byte[] bytes = new byte[smallTxt.Length];
+
+				await stream.ReadAsync(bytes, 0, bytes.Length);
+
+				stream.Seek(0, SeekOrigin.Begin);
+
+				Assert.Equal(MimeTypes.TXT, await smallTxt.GetFileTypeAsync());
+
+				Assert.Equal(MimeTypes.TXT, await stream.GetFileTypeAsync());
+
+				Assert.Equal(MimeTypes.TXT, bytes.GetFileType());
+			}
 		}
 	}
 }
