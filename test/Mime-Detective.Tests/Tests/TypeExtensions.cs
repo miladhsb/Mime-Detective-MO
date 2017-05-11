@@ -146,9 +146,59 @@ namespace MimeDetective.Tests
 			Assert.False(fileStream.CanWrite);
 		}
 
+		[Theory]
+		[InlineData(GoodFile, "jpg")]
+		[InlineData(GoodXmlFile, "docx")]
+		[InlineData(GoodZipFile, "zip")]
+		public async Task StreamShouldBeDisposed(string path, string ext)
+		{
+			var fileInfo = new FileInfo(path);
+
+			var fileStream = fileInfo.OpenRead();
+
+			var fileType = await fileStream.GetFileTypeAsync(shouldDisposeStream: true);
+
+			Assert.NotNull(fileType);
+
+			Assert.Equal(ext, fileType.Extension);
+
+			Assert.NotNull(fileStream);
+
+			Assert.False(fileStream.CanRead);
+
+			Assert.False(fileStream.CanSeek);
+
+			Assert.False(fileStream.CanWrite);
+		}
+
+		[Theory]
+		[InlineData(GoodFile, "jpg")]
+		[InlineData(GoodXmlFile, "docx")]
+		[InlineData(GoodZipFile, "zip")]
+		public void StreamShouldBeDisposedSync(string path, string ext)
+		{
+			var fileInfo = new FileInfo(path);
+
+			var fileStream = fileInfo.OpenRead();
+
+			var fileType = fileStream.GetFileType(shouldDisposeStream: true);
+
+			Assert.NotNull(fileType);
+
+			Assert.Equal(ext, fileType.Extension);
+
+			Assert.NotNull(fileStream);
+
+			Assert.False(fileStream.CanRead);
+
+			Assert.False(fileStream.CanSeek);
+
+			Assert.False(fileStream.CanWrite);
+		}
+
 		//load from byte array
-			//load from good byte array
-			//attempt to load from empty byte array
+		//load from good byte array
+		//attempt to load from empty byte array
 		[Fact]
 		public async Task FromByteArray()
 		{

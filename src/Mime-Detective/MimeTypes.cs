@@ -263,22 +263,24 @@ namespace MimeDetective
 			if (!fileHeader.Any(b => b == 0))
 				return TXT;
 
-			// compare the file header to the stored file headers
-			foreach (FileType type in Types)
+			Stream fileData = stream;
+
+			try
 			{
-				int matchingCount = GetFileMatchingCount(fileHeader, type);
-
-				if (type.Header.Length == matchingCount)
+				// compare the file header to the stored file headers
+				foreach (FileType type in Types)
 				{
-					// check for docx and xlsx only if a file name is given
-					// there may be situations where the file name is not given
-					if (!type.Equals(ZIP))
-						return type;
+					int matchingCount = GetFileMatchingCount(fileHeader, type);
 
-					Stream fileData = stream ?? new MemoryStream(data);
-
-					try
+					if (type.Header.Length == matchingCount)
 					{
+						// check for docx and xlsx only if a file name is given
+						// there may be situations where the file name is not given
+						if (!type.Equals(ZIP))
+							return type;
+
+						fileData = stream ?? new MemoryStream(data);
+
 						if (fileData.Position > 0)
 							fileData.Seek(0, SeekOrigin.Begin);
 
@@ -296,15 +298,15 @@ namespace MimeDetective
 							if (openOffice != null)
 								return openOffice;
 						}
-					}
-					finally
-					{
-						if(shouldDisposeStream)
-							fileData.Dispose();
-					}
 
-					return ZIP;
+						return ZIP;
+					}
 				}
+			}
+			finally
+			{
+				if (shouldDisposeStream)
+					fileData?.Dispose();
 			}
 
 			//no match return null
