@@ -241,21 +241,9 @@ namespace MimeDetective
 			return GetFileType(fileHeaderReadFunc(), stream, data);
 		}
 
-		//todo remove
-		public static FileType GetFileTypeBinary(Func<IReadOnlyList<byte>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
-		{
-			return GetFileTypeBinary(fileHeaderReadFunc(), stream, data);
-		}
-
 		public static async Task<FileType> GetFileTypeAsync(Func<Task<IReadOnlyList<byte>>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
 		{
 			return GetFileType(await fileHeaderReadFunc(), stream, data);
-		}
-
-		//todo remove
-		public static async Task<FileType> GetFileTypeBinaryAsync(Func<Task<IReadOnlyList<byte>>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
-		{
-			return GetFileTypeBinary(await fileHeaderReadFunc(), stream, data);
 		}
 
 		internal static FileType GetFileType(
@@ -326,7 +314,7 @@ namespace MimeDetective
 		}
 
 		public static FileType GetFileTypeBinary(
-		IReadOnlyList<byte> fileHeader,
+		byte[] fileHeader,
 		Stream stream = null,
 		byte[] data = null,
 		bool shouldDisposeStream = true)
@@ -334,15 +322,18 @@ namespace MimeDetective
 			if (stream is null && data is null)
 				throw new ArgumentNullException($"{nameof(data)}:{nameof(stream)}", "both file data arguments are null");
 
-			if (fileHeader.Count <= 0)
+			if (fileHeader.Length <= 0)
 				return null;
 
 			// checking if it's binary (not really exact, but should do the job)
 			// shouldn't work with UTF-16 OR UTF-32 files
-			if (!fileHeader.Any(b => b == 0))
-				return TXT;
-
-			Stream fileData = stream;
+			for (int i = 0; i < fileHeader.Length; i++)
+			{
+				if (fileHeader[i] != 0)
+					break;
+				else if (i == fileHeader.Length - 1)
+					return TXT;
+			}
 
 			try
 			{
@@ -359,8 +350,7 @@ namespace MimeDetective
 						highestMatchingType = type;
 						break;
 					}
-
-					if (matchingCount > highestMatchingCount)
+					else if (matchingCount > highestMatchingCount)
 					{
 						highestMatchingCount = matchingCount;
 						highestMatchingType = type;
@@ -369,12 +359,12 @@ namespace MimeDetective
 
 				if (highestMatchingType.Equals(ZIP))
 				{
-					fileData = stream ?? new MemoryStream(data);
+					stream = stream ?? new MemoryStream(data);
 
-					if (fileData.Position > 0)
-						fileData.Seek(0, SeekOrigin.Begin);
+					if (stream.Position > 0)
+						stream.Seek(0, SeekOrigin.Begin);
 
-					using (ZipArchive zipData = new ZipArchive(fileData, ZipArchiveMode.Read, leaveOpen: true))
+					using (ZipArchive zipData = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
 					{
 						//check for office xml formats
 						var officeXml = CheckForDocxAndXlsxStream(zipData);
@@ -391,13 +381,11 @@ namespace MimeDetective
 
 					return ZIP;
 				}
-
-
 			}
 			finally
 			{
 				if (shouldDisposeStream)
-					fileData?.Dispose();
+					stream?.Dispose();
 			}
 
 			//no match return null
@@ -498,16 +486,14 @@ namespace MimeDetective
 			return matchingCount;
 		}
 
-		private static int GetFileMatchingCountBinary(IReadOnlyList<byte> fileHeader, FileType type)
+		private static int GetFileMatchingCountBinary(byte[] fileHeader, FileType type)
 		{
 			int matchingCount = 0;
 
 			for (int i = 0; i < type.Header.Length; i++)
 			{
 				if (type.Header[i] == null || type.Header[i] == fileHeader[i + type.HeaderOffset])
-				{
 					matchingCount++;
-				}
 			}
 
 			return matchingCount;
@@ -522,7 +508,7 @@ namespace MimeDetective
 		/// </summary>
 		/// <param name="file">The file to work with</param>
 		/// <returns>Array of bytes</returns>
-		internal static IReadOnlyList<byte> ReadFileHeader(FileStream fileStream)
+		internal static byte[] ReadFileHeader(FileStream fileStream)
 		{
 			byte[] header = new byte[MaxHeaderSize];
 
@@ -534,7 +520,7 @@ namespace MimeDetective
 			return header;
 		}
 
-		internal static async Task<IReadOnlyList<byte>> ReadFileHeaderAsync(FileStream fileStream)
+		internal static async Task<byte[]> ReadFileHeaderAsync(FileStream fileStream)
 		{
 			byte[] header = new byte[MaxHeaderSize];
 
@@ -573,7 +559,7 @@ namespace MimeDetective
 		/// <param name="stream"></param>
 		/// <param name="MaxHeaderSize"></param>
 		/// <returns></returns>
-		internal static async Task<IReadOnlyList<byte>> ReadHeaderFromStreamAsync(Stream stream, ushort MaxHeaderSize)
+		internal static async Task<byte[]> ReadHeaderFromStreamAsync(Stream stream, ushort MaxHeaderSize)
 		{
 			byte[] header = new byte[MaxHeaderSize];
 
@@ -588,7 +574,7 @@ namespace MimeDetective
 			return header;
 		}
 
-		internal static IReadOnlyList<byte> ReadHeaderFromByteArray(IReadOnlyList<byte> byteArray, ushort MaxHeaderSize)
+		internal static byte[] ReadHeaderFromByteArray(byte[] byteArray, ushort MaxHeaderSize)
 		{
 			/*
 			if (byteArray.Count < MaxHeaderSize)
