@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.IO;
-using MimeDetective;
+using System.Threading.Tasks;
 
 namespace MimeDetective.Extensions
 {
@@ -17,11 +14,13 @@ namespace MimeDetective.Extensions
 		/// </summary>
 		/// <param name="file">The FileInfo object.</param>
 		/// <returns>FileType or null not identified</returns>
-		public static FileType GetFileType(this Stream stream) 
-			=> MimeTypes.GetFileType
-				(MimeTypes.ReadHeaderFromStream
-					(stream, MimeTypes.MaxHeaderSize),
-						stream, null, shouldDisposeStream: false);
+		public static FileType GetFileType(this Stream stream)
+		{
+			if (stream is null)
+				throw new ArgumentNullException($"{nameof(stream)}: cannot be null");
+
+			return MimeTypes.GetFileType(InputHelpers.ReadHeaderFromStream(stream, MimeTypes.MaxHeaderSize),stream, shouldDisposeStream: false);
+		}
 
 		/// <summary>
 		/// Read header of a stream and depending on the information in the header
@@ -32,10 +31,13 @@ namespace MimeDetective.Extensions
 		/// <param name="file">The FileInfo object.</param>
 		/// <returns>FileType or null not identified</returns>
 		public static FileType GetFileType(this Stream stream, bool shouldDisposeStream = false)
-			=> MimeTypes.GetFileType
-				(MimeTypes.ReadHeaderFromStream
-					(stream, MimeTypes.MaxHeaderSize),
-						stream, null, shouldDisposeStream);
+		{
+			if (stream is null)
+				throw new ArgumentNullException($"{nameof(stream)}: cannot be null");
+
+			return MimeTypes.GetFileType(InputHelpers.ReadHeaderFromStream(stream, MimeTypes.MaxHeaderSize), stream, shouldDisposeStream);
+		}
+
 		/// <summary>
 		/// Read header of a stream and depending on the information in the header
 		/// return object FileType.
@@ -45,9 +47,12 @@ namespace MimeDetective.Extensions
 		/// <param name="file">The FileInfo object.</param>
 		/// <returns>FileType or null not identified</returns>
 		public static async Task<FileType> GetFileTypeAsync(this Stream stream)
-			=> MimeTypes.GetFileType
-				(await MimeTypes.ReadHeaderFromStreamAsync(stream, MimeTypes.MaxHeaderSize),
-					stream, null, shouldDisposeStream: false);
+		{
+			if (stream is null)
+				throw new ArgumentNullException($"{nameof(stream)}: cannot be null");
+
+			return MimeTypes.GetFileType(await InputHelpers.ReadHeaderFromStreamAsync(stream, MimeTypes.MaxHeaderSize), stream, shouldDisposeStream: false);
+		}
 
 		/// <summary>
 		/// Read header of a stream and depending on the information in the header
@@ -58,8 +63,11 @@ namespace MimeDetective.Extensions
 		/// <param name="file">The FileInfo object.</param>
 		/// <returns>FileType or null not identified</returns>
 		public static async Task<FileType> GetFileTypeAsync(this Stream stream, bool shouldDisposeStream = false)
-			=> MimeTypes.GetFileType
-				(await MimeTypes.ReadHeaderFromStreamAsync(stream, MimeTypes.MaxHeaderSize),
-					stream, null, shouldDisposeStream);
+		{
+			if (stream is null)
+				throw new ArgumentNullException($"{nameof(stream)}: cannot be null");
+
+			return MimeTypes.GetFileType(await InputHelpers.ReadHeaderFromStreamAsync(stream, MimeTypes.MaxHeaderSize), stream, shouldDisposeStream);
+		}
 	}
 }

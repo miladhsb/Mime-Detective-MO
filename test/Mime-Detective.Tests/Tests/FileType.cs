@@ -17,7 +17,7 @@ namespace MimeDetective.Tests
 		}
 
 		[Fact]
-		public void Equals()
+		public void Equal()
 		{
 			Assert.True(MimeTypes.ELF.Equals(MimeTypes.ELF));
 
@@ -62,6 +62,19 @@ namespace MimeDetective.Tests
 			Assert.Equal(elf.ToString(), MimeTypes.ELF.Extension);
 
 			Assert.NotEqual(elf.ToString(), MimeTypes.ELF.GetType().ToString());
+		}
+
+		[Fact]
+		public void GetHashCodeIsntRandom()
+		{
+			for (int i = 0; i < 5; i++)
+			{
+				var hashCode = MimeTypes.ELF.GetHashCode();
+
+				var hashCode2 = MimeTypes.ELF.GetHashCode();
+
+				Assert.Equal(hashCode, hashCode2);
+			}
 		}
 	}
 }

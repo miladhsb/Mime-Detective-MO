@@ -5,7 +5,6 @@ namespace MimeDetective
 	/// <summary>
 	/// Little data structure to hold information about file types.
 	/// Holds information about binary header at the start of the file
-	/// these are mostly static they can be structs
 	/// </summary>
 	public class FileType
 	{
@@ -18,7 +17,7 @@ namespace MimeDetective
 		public string Mime { get; }
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileType"/> struct.
+		/// Initializes a new instance of the <see cref="FileType"/> class
 		/// Takes the details of offset for the header
 		/// </summary>
 		/// <param name="header">Byte array with header.</param>
@@ -34,7 +33,7 @@ namespace MimeDetective
 			Mime = mime;
 		}
 
-		public static bool operator ==(FileType a, FileType b)
+		public static bool operator == (FileType a, FileType b)
 		{
 			if (a is null && b is null)
 				return true;
@@ -49,21 +48,21 @@ namespace MimeDetective
 
 		public override bool Equals(object other)
 		{
-			if (other is null)
+			if (other == null)
 				return false;
 
-			if (!(other is FileType))
-				return false;
+			if(other is FileType type)
+			{
+				if (Extension.Equals(type.Extension) && Mime.Equals(type.Mime))
+					return true;
 
-			FileType otherType = (FileType)other;
+				return base.Equals(other);
+			}
 
-			if (Extension == otherType.Extension && Mime == otherType.Mime)
-				return true;
-
-			return base.Equals(other);
+			return false;
 		}
 
-		public override int GetHashCode() => (Header.GetHashCode() ^ HeaderOffset ^ Extension.GetHashCode() ^ Mime.GetHashCode());
+		public override int GetHashCode() => (base.GetHashCode() ^ Header.GetHashCode() ^ HeaderOffset ^ Extension.GetHashCode() ^ Mime.GetHashCode());
 
 		public override string ToString() => Extension;
 	}

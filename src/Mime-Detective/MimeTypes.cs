@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using static MimeDetective.InputHelpers;
 
 namespace MimeDetective
 {
@@ -17,21 +19,6 @@ namespace MimeDetective
 	public static class MimeTypes
 	{
 		// all the file types to be put into one list
-		public static readonly FileType[] Types;
-
-		public static readonly FileType[] XmlTypes;
-
-		static MimeTypes()
-		{
-			Types = new FileType[] { PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
-				BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, DWG, LIB_COFF, PST, PSD,
-				AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE,
-				Mp3, Wav, Flac, MIDI,
-				Tiff, TiffLittleEndian, TiffBigEndian, TiffBig,
-				Mp4ISOv1, MovQuickTime, MP4VideoFiles, Mp4QuickTime, Mp4VideoFile, ThridGPP2File, Mp4A, FLV };
-
-			XmlTypes = new FileType[] { WORDX, EXCELX, PPTX, ODS, ODT };
-		}
 
 		#region Constants
 
@@ -205,6 +192,17 @@ namespace MimeDetective
 		// number of bytes we read from a file
 		public const ushort MaxHeaderSize = 560;  // some file formats have headers offset to 512 bytes
 
+		public static readonly FileType[] Types = new FileType[] { PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
+				BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, DWG, LIB_COFF, PST, PSD,
+				AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE,
+				Mp3, Wav, Flac, MIDI,
+				Tiff, TiffLittleEndian, TiffBigEndian, TiffBig,
+				Mp4ISOv1, MovQuickTime, MP4VideoFiles, Mp4QuickTime, Mp4VideoFile, ThridGPP2File, Mp4A, FLV };
+
+		//public static readonly FileType[] sortedTypes = Types.OrderBy(x => x.Header.Length).ToArray();
+
+		public static readonly FileType[] XmlTypes = new FileType[] { WORDX, EXCELX, PPTX, ODS, ODT };
+
 		#endregion Constants
 
 		#region Main Methods
@@ -236,26 +234,26 @@ namespace MimeDetective
 		/// <param name="fileHeaderReadFunc">A function which returns the bytes found</param>
 		/// <param name="fileFullName">If given and file typ is a zip file, a check for docx and xlsx is done</param>
 		/// <returns>FileType or null not identified</returns>
-		public static FileType GetFileType(Func<IReadOnlyList<byte>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
+
+		/* todo
+		public static FileType GetFileType(Func<byte[]> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
 		{
-			return GetFileType(fileHeaderReadFunc(), stream, data);
+			return GetFileType(fileHeaderReadFunc(), stream, shouldDisposeStream: false, isFileHeaderRented: false);
 		}
 
-		public static async Task<FileType> GetFileTypeAsync(Func<Task<IReadOnlyList<byte>>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
+		public static async Task<FileType> GetFileTypeAsync(Func<Task<byte[]>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
 		{
-			return GetFileType(await fileHeaderReadFunc(), stream, data);
-		}
+			return GetFileType(await fileHeaderReadFunc(), stream, shouldDisposeStream: false, isFileHeaderRented: false);
+		}*/
 
-		internal static FileType GetFileType(
-			IReadOnlyList<byte> fileHeader,
+		/*
+		internal static FileType GetFileTypeOld(
+			byte[] fileHeader,
 			Stream stream = null,
 			byte[] data = null,
 			bool shouldDisposeStream = true)
 		{
-			if (stream is null && data is null)
-				throw new ArgumentNullException($"{nameof(data)}:{nameof(stream)}", "both file data arguments are null");
-
-			if (fileHeader.Count <= 0)
+			if (fileHeader.Length <= 0)
 				return null;
 
 			// checking if it's binary (not really exact, but should do the job)
@@ -270,7 +268,7 @@ namespace MimeDetective
 				// compare the file header to the stored file headers
 				foreach (FileType type in Types)
 				{
-					int matchingCount = GetFileMatchingCount(fileHeader, type);
+					int matchingCount = GetFileMatchingCountOld(fileHeader, type);
 
 					if (type.Header.Length == matchingCount)
 					{
@@ -307,43 +305,43 @@ namespace MimeDetective
 			{
 				if (shouldDisposeStream)
 					fileData?.Dispose();
+
+				if (data is null || !object.ReferenceEquals(fileHeader, data))
+					ArrayPool<byte>.Shared.Return(fileHeader, clearArray: true);
 			}
 
 			//no match return null
 			return null;
-		}
+		}*/
 
-		public static FileType GetFileTypeBinary(
-		byte[] fileHeader,
-		Stream stream = null,
-		byte[] data = null,
+		//todo break apart and split zip file handling to an IAnalyzer interface stuff design here
+		internal static FileType GetFileType(
+		ReadResult readResult,
 		bool shouldDisposeStream = true)
 		{
-			if (stream is null && data is null)
-				throw new ArgumentNullException($"{nameof(data)}:{nameof(stream)}", "both file data arguments are null");
-
-			if (fileHeader.Length <= 0)
+			if (readResult.Array.Length == 0)
 				return null;
-
-			// checking if it's binary (not really exact, but should do the job)
-			// shouldn't work with UTF-16 OR UTF-32 files
-			for (int i = 0; i < fileHeader.Length; i++)
-			{
-				if (fileHeader[i] != 0)
-					break;
-				else if (i == fileHeader.Length - 1)
-					return TXT;
-			}
 
 			try
 			{
-				int highestMatchingCount = 0;
+				// checking if it's binary (not really exact, but should do the job)
+				// shouldn't work with UTF-16 OR UTF-32 files
+				for (int i = 0; i < readResult.Array.Length && i < MaxHeaderSize; i++)
+				{
+					if (readResult.Array[i] != 0)
+						break;
+					else if (i == MaxHeaderSize - 1 || i == readResult.Array.Length - 1)
+						return null;
+						//return TXT;
+				}
+
+				uint highestMatchingCount = 0;
 				FileType highestMatchingType = null;
 
 				// compare the file header to the stored file headers
 				foreach (FileType type in Types)
 				{
-					int matchingCount = GetFileMatchingCountBinary(fileHeader, type);
+					uint matchingCount = GetFileMatchingCount(readResult.Array, type);
 
 					if (type.Header.Length == matchingCount)
 					{
@@ -359,37 +357,45 @@ namespace MimeDetective
 
 				if (highestMatchingType.Equals(ZIP))
 				{
-					stream = stream ?? new MemoryStream(data);
-
-					if (stream.Position > 0)
-						stream.Seek(0, SeekOrigin.Begin);
-
-					using (ZipArchive zipData = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
-					{
-						//check for office xml formats
-						var officeXml = CheckForDocxAndXlsxStream(zipData);
-
-						if (officeXml != null)
-							return officeXml;
-
-						//check for open office formats
-						var openOffice = CheckForOdtAndOds(zipData);
-
-						if (openOffice != null)
-							return openOffice;
-					}
-
-					return ZIP;
+					return FindZipType(readResult.Array, ref readResult.Source);
 				}
+
+				return highestMatchingType;
 			}
 			finally
 			{
-				if (shouldDisposeStream)
-					stream?.Dispose();
+				if (Stream != null && shouldDisposeStream)
+					Stream.Dispose();
+
+				//this might be the perf issue
+				if (IsArrayRented)//!object.ReferenceEquals(fileHeader, data))
+					ArrayPool<byte>.Shared.Return(Array, clearArray: true);
+			}
+		}
+
+		private static FileType FindZipType(byte[] fileHeader, ref Stream stream)
+		{
+			stream = stream ?? new MemoryStream(fileHeader);
+
+			if (stream.Position > 0)
+				stream.Seek(0, SeekOrigin.Begin);
+
+			using (ZipArchive zipData = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+			{
+				//check for office xml formats
+				var officeXml = CheckForDocxAndXlsxStream(zipData);
+
+				if (officeXml != null)
+					return officeXml;
+
+				//check for open office formats
+				var openOffice = CheckForOdtAndOds(zipData);
+
+				if (openOffice != null)
+					return openOffice;
 			}
 
-			//no match return null
-			return null;
+			return ZIP;
 		}
 
 		/// <summary>
@@ -399,18 +405,32 @@ namespace MimeDetective
 		/// <returns>List of FileTypes</returns>
 		public static List<FileType> GetFileTypesByExtensions(string CSV)
 		{
-			string[] extensions = CSV.ToUpper().Replace(" ", "").Split(',');
-
 			List<FileType> result = new List<FileType>();
 
 			foreach (FileType type in Types)
 			{
-				if (extensions.Contains(type.Extension.ToUpper()))
+				if (CSV.IndexOf(type.Extension,0,StringComparison.OrdinalIgnoreCase) > 0)
 					result.Add(type);
 			}
 			return result;
+		}  
+
+		private static FileType CheckForDocxAndXlsxStream(ZipArchive zipData)
+		{
+			foreach (var entry in zipData.Entries)
+			{
+				if (entry.FullName.StartsWith("word/"))
+					return WORDX;
+				else if (entry.FullName.StartsWith("xl/"))
+					return EXCELX;
+				else if (entry.FullName.StartsWith("ppt/"))
+					return PPTX;
+			}
+
+			return null;
 		}
 
+		/*
 		private static FileType CheckForDocxAndXlsxStream(ZipArchive zipData)
 		{
 			if (zipData.Entries.Any(e => e.FullName.StartsWith("word/")))
@@ -422,7 +442,7 @@ namespace MimeDetective
 			else
 				return null;
 		}
-
+		*/
 		/*
 		private static FileType CheckForDocxAndXlsx(FileType type, FileInfo fileInfo)
 		{
@@ -445,7 +465,16 @@ namespace MimeDetective
 		//check for open doc formats
 		private static FileType CheckForOdtAndOds(ZipArchive zipFile)
 		{
-			var ooMimeType = zipFile.Entries.FirstOrDefault(e => e.FullName == "mimetype");
+			ZipArchiveEntry ooMimeType = null;
+
+			foreach (var entry in zipFile.Entries)
+			{
+				if (entry.FullName == "mimetype")
+				{
+					ooMimeType = entry;
+					break;
+				}
+			}
 
 			if (ooMimeType is null)
 				return null;
@@ -463,7 +492,8 @@ namespace MimeDetective
 			}
 		}
 
-		private static int GetFileMatchingCount(IReadOnlyList<byte> fileHeader, FileType type)
+		/*
+		private static int GetFileMatchingCountOld(byte[] fileHeader, FileType type)
 		{
 			int matchingCount = 0;
 
@@ -484,116 +514,32 @@ namespace MimeDetective
 			}
 
 			return matchingCount;
-		}
+		}*/
 
-		private static int GetFileMatchingCountBinary(byte[] fileHeader, FileType type)
+		private static uint GetFileMatchingCount(byte[] fileHeader, FileType type)
 		{
-			int matchingCount = 0;
+			uint matchingCount = 0;
 
-			for (int i = 0; i < type.Header.Length; i++)
+			for (uint i = 0; i < type.Header.Length && i < fileHeader.Length && (i+type.HeaderOffset) < fileHeader.Length; i++)
 			{
 				if (type.Header[i] == null || type.Header[i] == fileHeader[i + type.HeaderOffset])
 					matchingCount++;
+
+				/*
+				// if file offset is not set to zero, we need to take this into account when comparing.
+				// if byte in type.header is set to null, means this byte is variable, ignore it
+				if (type.Header[i] != null && type.Header[i] != fileHeader[i + type.HeaderOffset])
+				{
+					// if one of the bytes does not match, move on to the next type
+					return 0;
+				}
+				else
+					matchingCount++;*/
 			}
 
 			return matchingCount;
 		}
 
 		#endregion Main Methods
-
-		#region Byte Header Get Methods
-
-		/// <summary>
-		/// Reads the file header - first (16) bytes from the file
-		/// </summary>
-		/// <param name="file">The file to work with</param>
-		/// <returns>Array of bytes</returns>
-		internal static byte[] ReadFileHeader(FileStream fileStream)
-		{
-			byte[] header = new byte[MaxHeaderSize];
-
-			// read first symbols from file into array of bytes.
-			fileStream.Read(header, 0, MaxHeaderSize);
-
-			fileStream.Seek(0, SeekOrigin.Begin);
-
-			return header;
-		}
-
-		internal static async Task<byte[]> ReadFileHeaderAsync(FileStream fileStream)
-		{
-			byte[] header = new byte[MaxHeaderSize];
-
-			// read first symbols from file into array of bytes.
-			await fileStream.ReadAsync(header, 0, MaxHeaderSize);
-
-			fileStream.Seek(0, SeekOrigin.Begin);
-
-			return header;
-		}
-
-		/// <summary>
-		/// Takes a stream does, not dispose of stream, resets read position to beginning though
-		/// </summary>
-		/// <param name="stream"></param>
-		/// <param name="MaxHeaderSize"></param>
-		/// <returns></returns>
-		internal static IReadOnlyList<byte> ReadHeaderFromStream(Stream stream, ushort MaxHeaderSize)
-		{
-			byte[] header = new byte[MaxHeaderSize];
-
-			if (!stream.CanRead)
-				throw new System.IO.IOException("Could not read from Stream");
-
-			if (stream.Position > 0)
-				stream.Seek(0, SeekOrigin.Begin);
-
-			stream.Read(header, 0, MaxHeaderSize);
-
-			return header;
-		}
-
-		/// <summary>
-		/// Takes a stream does, not dispose of stream, resets read position to beginning though
-		/// </summary>
-		/// <param name="stream"></param>
-		/// <param name="MaxHeaderSize"></param>
-		/// <returns></returns>
-		internal static async Task<byte[]> ReadHeaderFromStreamAsync(Stream stream, ushort MaxHeaderSize)
-		{
-			byte[] header = new byte[MaxHeaderSize];
-
-			if (!stream.CanRead)
-				throw new IOException($"Could not read from {nameof(stream)}");
-
-			if (stream.Position > 0)
-				stream.Seek(0, SeekOrigin.Begin);
-
-			await stream.ReadAsync(header, 0, MaxHeaderSize);
-
-			return header;
-		}
-
-		internal static byte[] ReadHeaderFromByteArray(byte[] byteArray, ushort MaxHeaderSize)
-		{
-			/*
-			if (byteArray.Count < MaxHeaderSize)
-				throw new ArgumentException($"{nameof(byteArray)}:{byteArray.Count} Is smaller than {nameof(MaxHeaderSize)}:{MaxHeaderSize}", nameof(byteArray));
-
-			byte[] header = new byte[MaxHeaderSize];
-
-			//Array.Copy(byteArray, header, MaxHeaderSize);
-			for (int i = 0; i < MaxHeaderSize; i++)
-			{
-				header[i] = byteArray[i];
-			}
-
-			return header;
-			*/
-
-			return byteArray;
-		}
-
-		#endregion Byte Header Get Methods
 	}
 }

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using MimeDetective;
 
 namespace MimeDetective
 {
@@ -19,30 +17,22 @@ namespace MimeDetective
 		/// <returns>FileType or null not identified</returns>
 		public static FileType GetFileType(this FileInfo file)
 		{
+			if (file is null)
+				throw new ArgumentNullException($"{nameof(file)}: cannot be null");
+
 			var stream = file.OpenRead();
 
-			return MimeTypes.GetFileType(MimeTypes.ReadFileHeader(stream), stream);
-		}
-
-		public static FileType GetFileTypeBinary(this FileInfo file)
-		{
-			var stream = file.OpenRead();
-
-			return MimeTypes.GetFileTypeBinary(MimeTypes.ReadFileHeader(stream), stream);
+			return MimeTypes.GetFileType(InputHelpers.ReadFileHeader(stream, MimeTypes.MaxHeaderSize), stream);
 		}
 
 		public static async Task<FileType> GetFileTypeAsync(this FileInfo file)
 		{
+			if (file is null)
+				throw new ArgumentNullException($"{nameof(file)}: cannot be null");
+
 			var stream = file.OpenRead();
 
-			return MimeTypes.GetFileType(await MimeTypes.ReadFileHeaderAsync(stream), stream);
-		}
-
-		public static async Task<FileType> GetFileTypeBinaryAsync(this FileInfo file)
-		{
-			var stream = file.OpenRead();
-
-			return MimeTypes.GetFileTypeBinary(await MimeTypes.ReadFileHeaderAsync(stream), stream);
+			return MimeTypes.GetFileType(await InputHelpers.ReadFileHeaderAsync(stream, MimeTypes.MaxHeaderSize), stream);
 		}
 
 		/// <summary>
@@ -57,6 +47,7 @@ namespace MimeDetective
 		{
 			FileType currentType = file.GetFileType();
 
+			//TODO Write a test to check if this null check is correct
 			if (currentType.Mime == null)
 				return false;
 
@@ -79,9 +70,6 @@ namespace MimeDetective
 			return file.IsFileOfTypes(providedTypes);
 		}
 
-
-		#region isType functions
-
 		/// <summary>
 		/// Determines whether the specified file is of provided type
 		/// </summary>
@@ -94,6 +82,7 @@ namespace MimeDetective
 		{
 			FileType actualType = GetFileType(file);
 
+			//TODO Write a test to check if this null check is correct
 			if (actualType.Mime == null)
 				return false;
 
@@ -105,8 +94,7 @@ namespace MimeDetective
 		/// </summary>
 		/// <param name="fileInfo"></param>
 		/// <returns></returns>
-		public static bool IsExe(this FileInfo fileInfo)
-			=> fileInfo.IsType(MimeTypes.DLL_EXE);
+		public static bool IsExe(this FileInfo fileInfo) => fileInfo.IsType(MimeTypes.DLL_EXE);
 
 		/// <summary>
 		/// Check if the file is Microsoft Installer.
@@ -121,6 +109,5 @@ namespace MimeDetective
 			// MSI has a generic DOCFILE header. Also it matches PPT files
 			return fileInfo.IsType(MimeTypes.PPT) || fileInfo.IsType(MimeTypes.MSDOC);
 		}
-		#endregion
 	}
 }
