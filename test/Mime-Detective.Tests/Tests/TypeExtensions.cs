@@ -11,13 +11,13 @@ namespace MimeDetective.Tests
 {
 	public class TypeExtensions
 	{
-		const string GoodFile = "./data/images/test.jpg";
+		const string GoodFile = "./data/Images/test.jpg";
 
-		const string GoodXmlFile = "./data/Documents/test.docx";
+		const string GoodXmlFile = "./data/Documents/DocxWord2016.docx";
 
-		const string GoodZipFile = "./data/images.zip";
+		const string GoodZipFile = "./data/Zip/images.zip";
 
-		const string BadFile = "./data/empty.jpg";
+		const string BadFile = "./data/Images/empty.jpg";
 
 		const string NonexistentFile = "./data/nonexistent.jpg";
 
@@ -252,11 +252,13 @@ namespace MimeDetective.Tests
 
 				stream.Seek(0, SeekOrigin.Begin);
 
-				Assert.Equal(MimeTypes.TXT, await smallTxt.GetFileTypeAsync());
+				var result = await smallTxt.GetFileTypeAsync();
 
-				Assert.Equal(MimeTypes.TXT, await stream.GetFileTypeAsync());
+				Assert.Equal(MimeTypes.TXT_UTF8, result);
 
-				Assert.Equal(MimeTypes.TXT, bytes.GetFileType());
+				Assert.Equal(MimeTypes.TXT_UTF8, await stream.GetFileTypeAsync());
+
+				Assert.Equal(MimeTypes.TXT_UTF8, bytes.GetFileType());
 			}
 		}
 	}

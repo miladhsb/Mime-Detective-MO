@@ -16,10 +16,10 @@
 	<PackageTargetFallback Condition="'$(TargetFramework)' == 'netstandard1.3'">
 	  $(PackageTargetFallback);portable-net45+win8
 	</PackageTargetFallback>
-	<AssemblyVersion>0.0.5.0</AssemblyVersion>
-	<FileVersion>0.0.5.0</FileVersion>
+	<AssemblyVersion>0.0.6.0</AssemblyVersion>
+	<FileVersion>0.0.6.0</FileVersion>
 	<PackageReleaseNotes>fixed handling of small files</PackageReleaseNotes>
-	<Version>0.0.5.0</Version>
+	<Version>0.0.6.0-alpha1</Version>
 	<DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
   </PropertyGroup>
 

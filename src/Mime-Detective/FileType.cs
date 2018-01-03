@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace MimeDetective
 {
@@ -6,7 +7,7 @@ namespace MimeDetective
 	/// Little data structure to hold information about file types.
 	/// Holds information about binary header at the start of the file
 	/// </summary>
-	public class FileType
+	public class FileType : IEquatable<FileType>
 	{
 		public byte?[] Header { get; }
 
@@ -15,6 +16,8 @@ namespace MimeDetective
 		public string Extension { get; }
 
 		public string Mime { get; }
+
+		private readonly int hashCode;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileType"/> class
@@ -31,6 +34,8 @@ namespace MimeDetective
 			HeaderOffset = offset;
 			Extension = extension;
 			Mime = mime;
+
+			hashCode = (base.GetHashCode() ^ Header.GetHashCode() ^ HeaderOffset ^ Extension.GetHashCode() ^ Mime.GetHashCode());
 		}
 
 		public static bool operator == (FileType a, FileType b)
@@ -48,21 +53,49 @@ namespace MimeDetective
 
 		public override bool Equals(object other)
 		{
-			if (other == null)
+			if (other is null)
 				return false;
 
 			if(other is FileType type)
 			{
-				if (Extension.Equals(type.Extension) && Mime.Equals(type.Mime))
+				if (HeaderOffset == type.HeaderOffset
+					&& Extension.Equals(type.Extension)
+					&& Mime.Equals(type.Mime)
+					&& CompareHeaders(Header, type.Header))
 					return true;
-
-				return base.Equals(other);
 			}
 
 			return false;
 		}
 
-		public override int GetHashCode() => (base.GetHashCode() ^ Header.GetHashCode() ^ HeaderOffset ^ Extension.GetHashCode() ^ Mime.GetHashCode());
+		//todo add tests for both
+		public bool Equals(FileType other)
+		{
+			if (other is null)
+				return false;
+
+			if (HeaderOffset == other.HeaderOffset
+				&& Extension.Equals(other.Extension)
+				&& Mime.Equals(other.Mime)
+				&& CompareHeaders(Header, other.Header))
+				return true;
+
+			return false;
+		}
+
+		private static bool CompareHeaders(byte?[] array1, byte?[] array2)
+		{
+			if (array1.Length != array2.Length)
+				return false;
+
+			for (int i = 0; i < array1.Length; i++)
+				if (array1[i] != array2[i])
+					return false;
+
+			return true;
+		}
+
+		public override int GetHashCode() => hashCode;
 
 		public override string ToString() => Extension;
 	}

@@ -9,9 +9,9 @@ namespace MimeDetective.Tests.Tests.Documents
 		public const string DocsPath = "./Data/Documents/";
 
 		[Theory]
-		[InlineData("microsoftPrintToPdf.pdf")]
-		[InlineData("pdf-test2.pdf")]
-		[InlineData("word2016Test.pdf")]
+		[InlineData("MicrosoftPrintToPdf.pdf")]
+		[InlineData("GithubTestPdf2.pdf")]
+		[InlineData("PdfWord2016.pdf")]
 		public async Task FileInfoPDF(string testPdf)
 		{
 			var info = new FileInfo(Path.Combine(DocsPath, testPdf));
@@ -20,7 +20,7 @@ namespace MimeDetective.Tests.Tests.Documents
 
 			var fileInfo = await info.GetFileTypeAsync();
 
-			Assert.True(fileInfo.Extension == "pdf");
+			Assert.Equal(fileInfo, MimeTypes.PDF);
 		}
 	}
 }

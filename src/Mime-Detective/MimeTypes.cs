@@ -23,6 +23,7 @@ namespace MimeDetective
 		#region Constants
 
 		#region office, excel, ppt and documents, xml, pdf, rtf, msdoc
+		public readonly static byte?[] EmptyHeader = new byte?[0];
 
 		// office and documents
 		public readonly static FileType WORD = new FileType(new byte?[] { 0xEC, 0xA5, 0xC1, 0x00 }, "doc", "application/msword", 512);
@@ -34,25 +35,26 @@ namespace MimeDetective
 
 		//ms office and openoffice docs (they're zip files: rename and enjoy!)
 		//don't add them to the list, as they will be 'subtypes' of the ZIP type
-		public readonly static FileType WORDX = new FileType(new byte?[0], "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 512);
-
-		public readonly static FileType PPTX = new FileType(new byte?[0], "pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", 512);
-		public readonly static FileType EXCELX = new FileType(new byte?[0], "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 512);
-		public readonly static FileType ODT = new FileType(new byte?[0], "odt", "application/vnd.oasis.opendocument.text", 512);
-		public readonly static FileType ODS = new FileType(new byte?[0], "ods", "application/vnd.oasis.opendocument.spreadsheet", 512);
+		public readonly static FileType WORDX = new FileType(EmptyHeader, "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 512);
+		public readonly static FileType PPTX = new FileType(EmptyHeader, "pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", 512);
+		public readonly static FileType EXCELX = new FileType(EmptyHeader, "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 512);
+		public readonly static FileType ODT = new FileType(EmptyHeader, "odt", "application/vnd.oasis.opendocument.text", 512);
+		public readonly static FileType ODS = new FileType(EmptyHeader, "ods", "application/vnd.oasis.opendocument.spreadsheet", 512);
 
 		// common documents
 		public readonly static FileType RTF = new FileType(new byte?[] { 0x7B, 0x5C, 0x72, 0x74, 0x66, 0x31 }, "rtf", "application/rtf");
 
 		public readonly static FileType PDF = new FileType(new byte?[] { 0x25, 0x50, 0x44, 0x46 }, "pdf", "application/pdf");
-		public readonly static FileType MSDOC = new FileType(new byte?[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }, "", "application/octet-stream");
+
+		//todo place holder extension
+		public readonly static FileType MSDOC = new FileType(new byte?[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }, "msdoc", "application/octet-stream");
 
 		//application/xml text/xml
 		public readonly static FileType XML = new FileType(new byte?[] { 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x3D, 0x22, 0x31, 0x2E, 0x30, 0x22, 0x3F, 0x3E },
 															"xml,xul", "text/xml");
 
 		//text files
-		public readonly static FileType TXT = new FileType(new byte?[0], "txt", "text/plain");
+		public readonly static FileType TXT = new FileType(EmptyHeader, "txt", "text/plain");
 
 		public readonly static FileType TXT_UTF8 = new FileType(new byte?[] { 0xEF, 0xBB, 0xBF }, "txt", "text/plain");
 		public readonly static FileType TXT_UTF16_BE = new FileType(new byte?[] { 0xFE, 0xFF }, "txt", "text/plain");
@@ -193,7 +195,7 @@ namespace MimeDetective
 		public const ushort MaxHeaderSize = 560;  // some file formats have headers offset to 512 bytes
 
 		public static readonly FileType[] Types = new FileType[] { PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
-				BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, DWG, LIB_COFF, PST, PSD,
+				BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, DWG, LIB_COFF, PST, PSD, BZ2,
 				AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE,
 				Mp3, Wav, Flac, MIDI,
 				Tiff, TiffLittleEndian, TiffBigEndian, TiffBig,
@@ -204,8 +206,6 @@ namespace MimeDetective
 		public static readonly FileType[] XmlTypes = new FileType[] { WORDX, EXCELX, PPTX, ODS, ODT };
 
 		#endregion Constants
-
-		#region Main Methods
 
 		public static void SaveToXmlFile(string path)
 		{
@@ -246,94 +246,29 @@ namespace MimeDetective
 			return GetFileType(await fileHeaderReadFunc(), stream, shouldDisposeStream: false, isFileHeaderRented: false);
 		}*/
 
-		/*
-		internal static FileType GetFileTypeOld(
-			byte[] fileHeader,
-			Stream stream = null,
-			byte[] data = null,
-			bool shouldDisposeStream = true)
-		{
-			if (fileHeader.Length <= 0)
-				return null;
-
-			// checking if it's binary (not really exact, but should do the job)
-			// shouldn't work with UTF-16 OR UTF-32 files
-			if (!fileHeader.Any(b => b == 0))
-				return TXT;
-
-			Stream fileData = stream;
-
-			try
-			{
-				// compare the file header to the stored file headers
-				foreach (FileType type in Types)
-				{
-					int matchingCount = GetFileMatchingCountOld(fileHeader, type);
-
-					if (type.Header.Length == matchingCount)
-					{
-						// check for docx and xlsx only if a file name is given
-						// there may be situations where the file name is not given
-						if (!type.Equals(ZIP))
-							return type;
-
-						fileData = stream ?? new MemoryStream(data);
-
-						if (fileData.Position > 0)
-							fileData.Seek(0, SeekOrigin.Begin);
-
-						using (ZipArchive zipData = new ZipArchive(fileData, ZipArchiveMode.Read, leaveOpen: true))
-						{
-							//check for office xml formats
-							var officeXml = CheckForDocxAndXlsxStream(zipData);
-
-							if (officeXml != null)
-								return officeXml;
-
-							//check for open office formats
-							var openOffice = CheckForOdtAndOds(zipData);
-
-							if (openOffice != null)
-								return openOffice;
-						}
-
-						return ZIP;
-					}
-				}
-			}
-			finally
-			{
-				if (shouldDisposeStream)
-					fileData?.Dispose();
-
-				if (data is null || !object.ReferenceEquals(fileHeader, data))
-					ArrayPool<byte>.Shared.Return(fileHeader, clearArray: true);
-			}
-
-			//no match return null
-			return null;
-		}*/
-
 		//todo break apart and split zip file handling to an IAnalyzer interface stuff design here
-		internal static FileType GetFileType(
-		ReadResult readResult,
-		bool shouldDisposeStream = true)
+		internal static FileType GetFileType(in ReadResult readResult)
 		{
-			if (readResult.Array.Length == 0)
+			if (readResult.ReadLength == 0)
 				return null;
 
 			try
 			{
+				bool doesNotHaveValues = true;
+
 				// checking if it's binary (not really exact, but should do the job)
 				// shouldn't work with UTF-16 OR UTF-32 files
-				for (int i = 0; i < readResult.Array.Length && i < MaxHeaderSize; i++)
+				for (int i = 0; i < readResult.ReadLength; i++)
 				{
 					if (readResult.Array[i] != 0)
+					{
+						doesNotHaveValues = false;
 						break;
-					else if (i == MaxHeaderSize - 1 || i == readResult.Array.Length - 1)
-						return null;
-						//return TXT;
+					}
 				}
+
+				if (doesNotHaveValues)
+					return null;
 
 				uint highestMatchingCount = 0;
 				FileType highestMatchingType = null;
@@ -341,7 +276,7 @@ namespace MimeDetective
 				// compare the file header to the stored file headers
 				foreach (FileType type in Types)
 				{
-					uint matchingCount = GetFileMatchingCount(readResult.Array, type);
+					uint matchingCount = GetFileMatchingCount(in readResult, type);
 
 					if (type.Header.Length == matchingCount)
 					{
@@ -355,32 +290,31 @@ namespace MimeDetective
 					}
 				}
 
-				if (highestMatchingType.Equals(ZIP))
-				{
-					return FindZipType(readResult.Array, ref readResult.Source);
-				}
+				if (ZIP.Equals(highestMatchingType))
+					return FindZipType(in readResult);
 
 				return highestMatchingType;
 			}
 			finally
 			{
-				if (Stream != null && shouldDisposeStream)
-					Stream.Dispose();
+				if (readResult.Source != null && readResult.ShouldDisposeStream)
+					readResult.Source.Dispose();
 
 				//this might be the perf issue
-				if (IsArrayRented)//!object.ReferenceEquals(fileHeader, data))
-					ArrayPool<byte>.Shared.Return(Array, clearArray: true);
+				if (readResult.IsArrayRented)
+					ArrayPool<byte>.Shared.Return(readResult.Array);
 			}
 		}
 
-		private static FileType FindZipType(byte[] fileHeader, ref Stream stream)
+		private static FileType FindZipType(in ReadResult readResult)
 		{
-			stream = stream ?? new MemoryStream(fileHeader);
+			//TODO this still needs disposed somehow
+			readResult.CreateMemoryStreamIfSourceIsNull();
 
-			if (stream.Position > 0)
-				stream.Seek(0, SeekOrigin.Begin);
+			if (readResult.Source.Position > 0)
+				readResult.Source.Seek(0, SeekOrigin.Begin);
 
-			using (ZipArchive zipData = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+			using (ZipArchive zipData = new ZipArchive(readResult.Source, ZipArchiveMode.Read, leaveOpen: true))
 			{
 				//check for office xml formats
 				var officeXml = CheckForDocxAndXlsxStream(zipData);
@@ -516,30 +450,17 @@ namespace MimeDetective
 			return matchingCount;
 		}*/
 
-		private static uint GetFileMatchingCount(byte[] fileHeader, FileType type)
+		private static uint GetFileMatchingCount(in ReadResult readResult, FileType type)
 		{
 			uint matchingCount = 0;
 
-			for (uint i = 0; i < type.Header.Length && i < fileHeader.Length && (i+type.HeaderOffset) < fileHeader.Length; i++)
+			for (int i = 0, iOffset = type.HeaderOffset; i < type.Header.Length && i < readResult.ReadLength && iOffset < readResult.ReadLength; i++, iOffset++)
 			{
-				if (type.Header[i] == null || type.Header[i] == fileHeader[i + type.HeaderOffset])
+				if (type.Header[i] is null || type.Header[i] == readResult.Array[iOffset])
 					matchingCount++;
-
-				/*
-				// if file offset is not set to zero, we need to take this into account when comparing.
-				// if byte in type.header is set to null, means this byte is variable, ignore it
-				if (type.Header[i] != null && type.Header[i] != fileHeader[i + type.HeaderOffset])
-				{
-					// if one of the bytes does not match, move on to the next type
-					return 0;
-				}
-				else
-					matchingCount++;*/
 			}
 
 			return matchingCount;
 		}
-
-		#endregion Main Methods
 	}
 }

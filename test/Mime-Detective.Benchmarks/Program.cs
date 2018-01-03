@@ -80,37 +80,27 @@ namespace Mime_Detective.Benchmarks
 		}
 
 		//[Benchmark(OperationsPerInvoke = 1000)]
-		public void GoodLookup() => DoNTimes(GoodFile);
+		//public void GoodLookup() => DoNTimes(GoodFile);
 
 		//[Benchmark(OperationsPerInvoke = 1000)]
-		public void BinaryLookup() => DoNTimesBinary(GoodFile);
+		//public void BinaryLookup() => DoNTimesBinary(GoodFile);
 
 		//[Benchmark(OperationsPerInvoke = 1000)]
-		public void BadLookup() => DoNTimes(BadFile);
+		//public void BadLookup() => DoNTimes(BadFile);
 
 
 		//[Benchmark(OperationsPerInvoke = 1000)]
-		public void DocxLookup() => DoNTimes(GoodXmlFile);
+		//public void DocxLookup() => DoNTimes(GoodXmlFile);
 
 		//[Benchmark(OperationsPerInvoke = 1000)]
-		public void ZipLookup() => DoNTimes(GoodZipFile);
+		//public void ZipLookup() => DoNTimes(GoodZipFile);
 
 		//[Benchmark(OperationsPerInvoke = 1000)]
-		public void ByteArrayLookup()
+
+		[Benchmark]
+		public FileType ByteArrayLookupBinary()
 		{
-			for (int i = 0; i < 1_000_000; i++)
-			{
-				FileType type = bytes.GetFileType();
-			}
-		}
-
-		[Benchmark(OperationsPerInvoke = 10_000)]
-		public void ByteArrayLookupBinary()
-		{
-			for (int i = 0; i < 10_000; i++)
-			{
-				FileType type = bytes.GetFileType();
-			}
+			return bytes.GetFileType();
 		}
 
 		/*
@@ -197,21 +187,6 @@ namespace Mime_Detective.Benchmarks
 				return null;
 		}
 		*/
-		private void DoNTimes(FileInfo file)
-		{
-			for (int i = 0; i < 1000; i++)
-			{
-				FileType type = file.GetFileType();
-			}
-		}
-
-		private void DoNTimesBinary(FileInfo file)
-		{
-			for (int i = 0; i < 1000; i++)
-			{
-				FileType type = file.GetFileType();
-			}
-		}
 	}
 
 	public class Program

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using static MimeDetective.InputHelpers;
 
 namespace MimeDetective
 {
@@ -18,21 +19,25 @@ namespace MimeDetective
 		public static FileType GetFileType(this FileInfo file)
 		{
 			if (file is null)
-				throw new ArgumentNullException($"{nameof(file)}: cannot be null");
+				throw new ArgumentNullException(nameof(file));
 
 			var stream = file.OpenRead();
 
-			return MimeTypes.GetFileType(InputHelpers.ReadFileHeader(stream, MimeTypes.MaxHeaderSize), stream);
+			ReadResult readResult = ReadFileHeader(stream, MimeTypes.MaxHeaderSize);
+
+			return MimeTypes.GetFileType(in readResult);
 		}
 
 		public static async Task<FileType> GetFileTypeAsync(this FileInfo file)
 		{
 			if (file is null)
-				throw new ArgumentNullException($"{nameof(file)}: cannot be null");
+				throw new ArgumentNullException(nameof(file));
 
 			var stream = file.OpenRead();
 
-			return MimeTypes.GetFileType(await InputHelpers.ReadFileHeaderAsync(stream, MimeTypes.MaxHeaderSize), stream);
+			ReadResult readResult = await ReadFileHeaderAsync(stream, MimeTypes.MaxHeaderSize);
+
+			return MimeTypes.GetFileType(in readResult);
 		}
 
 		/// <summary>

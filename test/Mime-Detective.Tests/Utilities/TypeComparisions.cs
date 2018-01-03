@@ -16,20 +16,11 @@ namespace MimeDetective.Utilities
 
 			Assert.True(info.IsType(type));
 
+			Assert.True(info.GetFileType().Equals(type));
+
 			Assert.True(info.GetFileType() == type);
 
 			Assert.False(info.GetFileType() != type);
 		}
 	}
-
-	/*
-	public class MyClass
-	{
-		[Fact]
-		public void test()
-		{
-			Assert.ThrowsAny<Exception>(() => { TypeComparisions.AssertIsType(null, MimeTypes.AES).Wait(); });
-		}
-	}
-	*/
 }

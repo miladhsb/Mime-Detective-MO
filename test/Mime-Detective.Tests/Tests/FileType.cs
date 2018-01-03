@@ -6,14 +6,14 @@ using Xunit;
 
 namespace MimeDetective.Tests
 {
-	public class FileType
+	public class FileTypeTests
 	{
 		[Fact]
 		public void Constructors()
 		{
 			var info = new global::MimeDetective.FileType(new byte?[] { 0x12, 0x14, 0x13, 0x15, 0x16 }, "png", "image/png", 4);
 
-			Assert.Throws(typeof(ArgumentNullException), () => { var a = new global::MimeDetective.FileType(null, "png", "image/png", 4); });
+			Assert.Throws<ArgumentNullException>(() => { var a = new global::MimeDetective.FileType(null, "png", "image/png", 4); });
 		}
 
 		[Fact]
@@ -65,15 +65,20 @@ namespace MimeDetective.Tests
 		}
 
 		[Fact]
-		public void GetHashCodeIsntRandom()
+		public void GetHashCodeIsntRandomAndDoesntChange()
 		{
-			for (int i = 0; i < 5; i++)
+			var allValues = ReflectionHelpers.GetAllTypeValues();
+
+			foreach (var value in allValues)
 			{
-				var hashCode = MimeTypes.ELF.GetHashCode();
+				for (int i = 0; i < 5; i++)
+				{
+					var hashCode = value.GetHashCode();
 
-				var hashCode2 = MimeTypes.ELF.GetHashCode();
+					var hashCode2 = value.GetHashCode();
 
-				Assert.Equal(hashCode, hashCode2);
+					Assert.Equal(hashCode, hashCode2);
+				}
 			}
 		}
 	}
