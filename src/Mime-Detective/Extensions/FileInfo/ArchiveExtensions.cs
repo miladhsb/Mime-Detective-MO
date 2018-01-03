@@ -1,7 +1,7 @@
-﻿namespace MimeDetective
-{
-    using System.IO;
+﻿using System.IO;
 
+namespace MimeDetective
+{
     /// <summary>
     /// A set of extension methods for use with document formats.
     /// </summary>
@@ -14,8 +14,7 @@
         /// <returns>
         ///   <c>true</c> if the specified file info is zip; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsZip(this FileInfo fileInfo)
-			=> fileInfo.IsType(MimeTypes.ZIP);
+        public static bool IsZip(this FileInfo fileInfo) => fileInfo.IsType(MimeTypes.ZIP);
 
         /// <summary>
         /// Determines whether the specified file is RAR-archive.
@@ -24,8 +23,6 @@
         /// <returns>
         ///   <c>true</c> if the specified file info is RAR; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsRar(this FileInfo fileInfo)
-			=> fileInfo.IsType(MimeTypes.RAR);
-        
+        public static bool IsRar(this FileInfo fileInfo) => fileInfo.IsType(MimeTypes.RAR);
     }
 }

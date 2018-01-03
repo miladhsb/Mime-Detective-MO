@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace MimeDetective
 {
 	/// <summary>
 	/// Little data structure to hold information about file types.
 	/// Holds information about binary header at the start of the file
-	/// these are mostly static they can be structs
 	/// </summary>
-	public class FileType
+	public class FileType : IEquatable<FileType>
 	{
 		public byte?[] Header { get; }
 
@@ -17,8 +17,10 @@ namespace MimeDetective
 
 		public string Mime { get; }
 
+		private readonly int hashCode;
+
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileType"/> struct.
+		/// Initializes a new instance of the <see cref="FileType"/> class
 		/// Takes the details of offset for the header
 		/// </summary>
 		/// <param name="header">Byte array with header.</param>
@@ -32,9 +34,11 @@ namespace MimeDetective
 			HeaderOffset = offset;
 			Extension = extension;
 			Mime = mime;
+
+			hashCode = (base.GetHashCode() ^ Header.GetHashCode() ^ HeaderOffset ^ Extension.GetHashCode() ^ Mime.GetHashCode());
 		}
 
-		public static bool operator ==(FileType a, FileType b)
+		public static bool operator == (FileType a, FileType b)
 		{
 			if (a is null && b is null)
 				return true;
@@ -52,18 +56,46 @@ namespace MimeDetective
 			if (other is null)
 				return false;
 
-			if (!(other is FileType))
-				return false;
+			if(other is FileType type)
+			{
+				if (HeaderOffset == type.HeaderOffset
+					&& Extension.Equals(type.Extension)
+					&& Mime.Equals(type.Mime)
+					&& CompareHeaders(Header, type.Header))
+					return true;
+			}
 
-			FileType otherType = (FileType)other;
-
-			if (Extension == otherType.Extension && Mime == otherType.Mime)
-				return true;
-
-			return base.Equals(other);
+			return false;
 		}
 
-		public override int GetHashCode() => (Header.GetHashCode() ^ HeaderOffset ^ Extension.GetHashCode() ^ Mime.GetHashCode());
+		//todo add tests for both
+		public bool Equals(FileType other)
+		{
+			if (other is null)
+				return false;
+
+			if (HeaderOffset == other.HeaderOffset
+				&& Extension.Equals(other.Extension)
+				&& Mime.Equals(other.Mime)
+				&& CompareHeaders(Header, other.Header))
+				return true;
+
+			return false;
+		}
+
+		private static bool CompareHeaders(byte?[] array1, byte?[] array2)
+		{
+			if (array1.Length != array2.Length)
+				return false;
+
+			for (int i = 0; i < array1.Length; i++)
+				if (array1[i] != array2[i])
+					return false;
+
+			return true;
+		}
+
+		public override int GetHashCode() => hashCode;
 
 		public override string ToString() => Extension;
 	}
