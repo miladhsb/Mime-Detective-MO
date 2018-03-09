@@ -17,7 +17,11 @@ namespace MimeDetective.Tests
 
 		const string GoodZipFile = "./data/Zip/images.zip";
 
-		const string BadFile = "./data/Images/empty.jpg";
+        const string GoodXLSFile = "./data/Documents/XlsxExcel2016.xlsx";
+
+	    const string GoodPptxFile = "./data/Documents/PptxPowerpoint2016.pptx";
+
+        const string BadFile = "./data/Images/empty.jpg";
 
 		const string NonexistentFile = "./data/nonexistent.jpg";
 
@@ -199,24 +203,21 @@ namespace MimeDetective.Tests
 		//load from byte array
 		//load from good byte array
 		//attempt to load from empty byte array
-		[Fact]
-		public async Task FromByteArray()
+		[Theory]
+        [InlineData(GoodFile, "jpg")]
+        [InlineData(GoodXmlFile, "docx")]
+        [InlineData(GoodZipFile, "zip")]
+        [InlineData(GoodXLSFile, "xlsx")]
+        [InlineData(GoodPptxFile, "pptx")]
+        public async Task FromByteArray(string filePath, string ext)
 		{
-			var fileInfo = new FileInfo(GoodFile);
+		    var byteArray = File.ReadAllBytes(filePath);
 
-			//560 is the max file header size
-			byte[] byteArray = new byte[560];
-
-			using (var fileStream = fileInfo.OpenRead())
-			{
-				await fileStream.ReadAsync(byteArray, 0, 560);
-			}
-
-			var mimeType = byteArray.GetFileType();
+            var mimeType = byteArray.GetFileType();
 
 			Assert.NotNull(mimeType);
 
-			Assert.Equal(MimeTypes.JPEG, mimeType);
+			Assert.Equal(ext, mimeType.Extension);
 		}
 
 		[Fact]

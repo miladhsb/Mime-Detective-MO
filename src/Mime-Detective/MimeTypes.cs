@@ -9,176 +9,176 @@ using static MimeDetective.InputHelpers;
 
 namespace MimeDetective
 {
-	/// <summary>
-	/// Helper class to identify file type by the file header, not file extension.
-	/// file headers are taken from here:
-	/// http://www.garykessler.net/library/file_sigs.html
-	/// mime types are taken from here:
-	/// http://www.webmaster-toolkit.com/mime-types.shtml
-	/// </summary>
-	public static class MimeTypes
-	{
-		// all the file types to be put into one list
+    /// <summary>
+    /// Helper class to identify file type by the file header, not file extension.
+    /// file headers are taken from here:
+    /// http://www.garykessler.net/library/file_sigs.html
+    /// mime types are taken from here:
+    /// http://www.webmaster-toolkit.com/mime-types.shtml
+    /// </summary>
+    public static class MimeTypes
+    {
+        // all the file types to be put into one list
 
-		#region Constants
+        #region Constants
 
-		#region office, excel, ppt and documents, xml, pdf, rtf, msdoc
-		public readonly static byte?[] EmptyHeader = new byte?[0];
+        #region office, excel, ppt and documents, xml, pdf, rtf, msdoc
+        public readonly static byte?[] EmptyHeader = new byte?[0];
 
-		// office and documents
-		public readonly static FileType WORD = new FileType(new byte?[] { 0xEC, 0xA5, 0xC1, 0x00 }, "doc", "application/msword", 512);
+        // office and documents
+        public readonly static FileType WORD = new FileType(new byte?[] { 0xEC, 0xA5, 0xC1, 0x00 }, "doc", "application/msword", 512);
 
-		public readonly static FileType EXCEL = new FileType(new byte?[] { 0x09, 0x08, 0x10, 0x00, 0x00, 0x06, 0x05, 0x00 }, "xls", "application/excel", 512);
+        public readonly static FileType EXCEL = new FileType(new byte?[] { 0x09, 0x08, 0x10, 0x00, 0x00, 0x06, 0x05, 0x00 }, "xls", "application/excel", 512);
 
-		//see source control for old version, def maybe wrong period
-		public readonly static FileType PPT = new FileType(new byte?[] { 0xA0, 0x46, 0x1D, 0xF0 }, "ppt", "application/mspowerpoint", 512);
+        //see source control for old version, def maybe wrong period
+        public readonly static FileType PPT = new FileType(new byte?[] { 0xA0, 0x46, 0x1D, 0xF0 }, "ppt", "application/mspowerpoint", 512);
 
-		//ms office and openoffice docs (they're zip files: rename and enjoy!)
-		//don't add them to the list, as they will be 'subtypes' of the ZIP type
-		public readonly static FileType WORDX = new FileType(EmptyHeader, "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 512);
-		public readonly static FileType PPTX = new FileType(EmptyHeader, "pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", 512);
-		public readonly static FileType EXCELX = new FileType(EmptyHeader, "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 512);
-		public readonly static FileType ODT = new FileType(EmptyHeader, "odt", "application/vnd.oasis.opendocument.text", 512);
-		public readonly static FileType ODS = new FileType(EmptyHeader, "ods", "application/vnd.oasis.opendocument.spreadsheet", 512);
+        //ms office and openoffice docs (they're zip files: rename and enjoy!)
+        //don't add them to the list, as they will be 'subtypes' of the ZIP type
+        public readonly static FileType WORDX = new FileType(EmptyHeader, "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 512);
+        public readonly static FileType PPTX = new FileType(EmptyHeader, "pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", 512);
+        public readonly static FileType EXCELX = new FileType(EmptyHeader, "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 512);
+        public readonly static FileType ODT = new FileType(EmptyHeader, "odt", "application/vnd.oasis.opendocument.text", 512);
+        public readonly static FileType ODS = new FileType(EmptyHeader, "ods", "application/vnd.oasis.opendocument.spreadsheet", 512);
 
-		// common documents
-		public readonly static FileType RTF = new FileType(new byte?[] { 0x7B, 0x5C, 0x72, 0x74, 0x66, 0x31 }, "rtf", "application/rtf");
+        // common documents
+        public readonly static FileType RTF = new FileType(new byte?[] { 0x7B, 0x5C, 0x72, 0x74, 0x66, 0x31 }, "rtf", "application/rtf");
 
-		public readonly static FileType PDF = new FileType(new byte?[] { 0x25, 0x50, 0x44, 0x46 }, "pdf", "application/pdf");
+        public readonly static FileType PDF = new FileType(new byte?[] { 0x25, 0x50, 0x44, 0x46 }, "pdf", "application/pdf");
 
-		//todo place holder extension
-		public readonly static FileType MSDOC = new FileType(new byte?[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }, "msdoc", "application/octet-stream");
+        //todo place holder extension
+        public readonly static FileType MSDOC = new FileType(new byte?[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }, "msdoc", "application/octet-stream");
 
-		//application/xml text/xml
-		public readonly static FileType XML = new FileType(new byte?[] { 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x3D, 0x22, 0x31, 0x2E, 0x30, 0x22, 0x3F, 0x3E },
-															"xml,xul", "text/xml");
+        //application/xml text/xml
+        public readonly static FileType XML = new FileType(new byte?[] { 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x3D, 0x22, 0x31, 0x2E, 0x30, 0x22, 0x3F, 0x3E },
+                                                            "xml,xul", "text/xml");
 
-		//text files
-		public readonly static FileType TXT = new FileType(EmptyHeader, "txt", "text/plain");
+        //text files
+        public readonly static FileType TXT = new FileType(EmptyHeader, "txt", "text/plain");
 
-		public readonly static FileType TXT_UTF8 = new FileType(new byte?[] { 0xEF, 0xBB, 0xBF }, "txt", "text/plain");
-		public readonly static FileType TXT_UTF16_BE = new FileType(new byte?[] { 0xFE, 0xFF }, "txt", "text/plain");
-		public readonly static FileType TXT_UTF16_LE = new FileType(new byte?[] { 0xFF, 0xFE }, "txt", "text/plain");
-		public readonly static FileType TXT_UTF32_BE = new FileType(new byte?[] { 0x00, 0x00, 0xFE, 0xFF }, "txt", "text/plain");
-		public readonly static FileType TXT_UTF32_LE = new FileType(new byte?[] { 0xFF, 0xFE, 0x00, 0x00 }, "txt", "text/plain");
+        public readonly static FileType TXT_UTF8 = new FileType(new byte?[] { 0xEF, 0xBB, 0xBF }, "txt", "text/plain");
+        public readonly static FileType TXT_UTF16_BE = new FileType(new byte?[] { 0xFE, 0xFF }, "txt", "text/plain");
+        public readonly static FileType TXT_UTF16_LE = new FileType(new byte?[] { 0xFF, 0xFE }, "txt", "text/plain");
+        public readonly static FileType TXT_UTF32_BE = new FileType(new byte?[] { 0x00, 0x00, 0xFE, 0xFF }, "txt", "text/plain");
+        public readonly static FileType TXT_UTF32_LE = new FileType(new byte?[] { 0xFF, 0xFE, 0x00, 0x00 }, "txt", "text/plain");
 
-		#endregion office, excel, ppt and documents, xml, pdf, rtf, msdoc
+        #endregion office, excel, ppt and documents, xml, pdf, rtf, msdoc
 
-		// graphics
+        // graphics
 
-		#region Graphics jpeg, png, gif, bmp, ico, tiff
+        #region Graphics jpeg, png, gif, bmp, ico, tiff
 
-		public readonly static FileType JPEG = new FileType(new byte?[] { 0xFF, 0xD8, 0xFF }, "jpg", "image/jpeg");
-		public readonly static FileType PNG = new FileType(new byte?[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, "png", "image/png");
-		public readonly static FileType GIF = new FileType(new byte?[] { 0x47, 0x49, 0x46, 0x38, null, 0x61 }, "gif", "image/gif");
-		public readonly static FileType BMP = new FileType(new byte?[] { 0x42, 0x4D }, "bmp", "image/bmp"); // or image/x-windows-bmp
-		public readonly static FileType ICO = new FileType(new byte?[] { 0, 0, 1, 0 }, "ico", "image/x-icon");
+        public readonly static FileType JPEG = new FileType(new byte?[] { 0xFF, 0xD8, 0xFF }, "jpg", "image/jpeg");
+        public readonly static FileType PNG = new FileType(new byte?[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, "png", "image/png");
+        public readonly static FileType GIF = new FileType(new byte?[] { 0x47, 0x49, 0x46, 0x38, null, 0x61 }, "gif", "image/gif");
+        public readonly static FileType BMP = new FileType(new byte?[] { 0x42, 0x4D }, "bmp", "image/bmp"); // or image/x-windows-bmp
+        public readonly static FileType ICO = new FileType(new byte?[] { 0, 0, 1, 0 }, "ico", "image/x-icon");
 
-		//tiff
-		//todo review support for tiffs, values for files need verified
-		public readonly static FileType Tiff = new FileType(new byte?[] { 0x49, 0x20, 0x49 }, "tiff", "image/tiff");
+        //tiff
+        //todo review support for tiffs, values for files need verified
+        public readonly static FileType Tiff = new FileType(new byte?[] { 0x49, 0x20, 0x49 }, "tiff", "image/tiff");
 
-		public readonly static FileType TiffLittleEndian = new FileType(new byte?[] { 0x49, 0x49, 0x2A, 0 }, "tiff", "image/tiff");
-		public readonly static FileType TiffBigEndian = new FileType(new byte?[] { 0x4D, 0x4D, 0, 0x2A }, "tiff", "image/tiff");
-		public readonly static FileType TiffBig = new FileType(new byte?[] { 0x4D, 0x4D, 0, 0x2B }, "tiff", "image/tiff");
+        public readonly static FileType TiffLittleEndian = new FileType(new byte?[] { 0x49, 0x49, 0x2A, 0 }, "tiff", "image/tiff");
+        public readonly static FileType TiffBigEndian = new FileType(new byte?[] { 0x4D, 0x4D, 0, 0x2A }, "tiff", "image/tiff");
+        public readonly static FileType TiffBig = new FileType(new byte?[] { 0x4D, 0x4D, 0, 0x2B }, "tiff", "image/tiff");
 
-		#endregion Graphics jpeg, png, gif, bmp, ico, tiff
+        #endregion Graphics jpeg, png, gif, bmp, ico, tiff
 
-		#region Video
+        #region Video
 
-		//todo review these
-		//mp4 iso base file format, value: ....ftypisom
-		public readonly static FileType Mp4ISOv1 = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D }, "mp4", "video/mp4", 4);
+        //todo review these
+        //mp4 iso base file format, value: ....ftypisom
+        public readonly static FileType Mp4ISOv1 = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D }, "mp4", "video/mp4", 4);
 
-		public readonly static FileType Mp4QuickTime = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70, 0x34, 0x32 }, "m4v", "video/x-m4v", 4);
+        public readonly static FileType Mp4QuickTime = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70, 0x34, 0x32 }, "m4v", "video/x-m4v", 4);
 
-		public readonly static FileType MovQuickTime = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x71, 0x74, 0x20, 0x20 }, "mov", "video/quicktime", 4);
+        public readonly static FileType MovQuickTime = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x71, 0x74, 0x20, 0x20 }, "mov", "video/quicktime", 4);
 
-		public readonly static FileType MP4VideoFiles = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70, 0x35 }, "mp4", "video/mp4", 4);
+        public readonly static FileType MP4VideoFiles = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70, 0x35 }, "mp4", "video/mp4", 4);
 
-		public readonly static FileType Mp4VideoFile = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x4D, 0x53, 0x4E, 0x56 }, "mp4", "video/mp4", 4);
+        public readonly static FileType Mp4VideoFile = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x4D, 0x53, 0x4E, 0x56 }, "mp4", "video/mp4", 4);
 
-		public readonly static FileType Mp4A = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41, 0x20 }, "mp4a", "audio/mp4", 4);
+        public readonly static FileType Mp4A = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41, 0x20 }, "mp4a", "audio/mp4", 4);
 
-		//FLV	 	Flash video file
-		public readonly static FileType FLV = new FileType(new byte?[] { 0x46, 0x4C, 0x56, 0x01 }, "flv", "application/unknown");
+        //FLV	 	Flash video file
+        public readonly static FileType FLV = new FileType(new byte?[] { 0x46, 0x4C, 0x56, 0x01 }, "flv", "application/unknown");
 
-		public readonly static FileType ThridGPP2File = new FileType(new byte?[] { 0, 0, 0, 0x20, 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70 }, "3gp", "video/3gg");
+        public readonly static FileType ThridGPP2File = new FileType(new byte?[] { 0, 0, 0, 0x20, 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70 }, "3gp", "video/3gg");
 
-		#endregion Video
+        #endregion Video
 
-		#region Audio
+        #region Audio
 
-		public readonly static FileType Mp3 = new FileType(new byte?[] { 0x49, 0x44, 0x33 }, "mp3", "audio/mpeg");
+        public readonly static FileType Mp3 = new FileType(new byte?[] { 0x49, 0x44, 0x33 }, "mp3", "audio/mpeg");
 
-		//WAV	 	Resource Interchange File Format -- Audio for Windows file, where xx xx xx xx is the file size (little endian), audio/wav audio/x-wav
+        //WAV	 	Resource Interchange File Format -- Audio for Windows file, where xx xx xx xx is the file size (little endian), audio/wav audio/x-wav
 
-		public readonly static FileType Wav = new FileType(new byte?[] { 0x52, 0x49, 0x46, 0x46, null, null, null, null,
-			0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20 }, "wav", "audio/wav");
+        public readonly static FileType Wav = new FileType(new byte?[] { 0x52, 0x49, 0x46, 0x46, null, null, null, null,
+            0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20 }, "wav", "audio/wav");
 
-		//MID, MIDI	 	Musical Instrument Digital Interface (MIDI) sound file
-		public readonly static FileType MIDI = new FileType(new byte?[] { 0x4D, 0x54, 0x68, 0x64 }, "midi,mid", "audio/midi");
+        //MID, MIDI	 	Musical Instrument Digital Interface (MIDI) sound file
+        public readonly static FileType MIDI = new FileType(new byte?[] { 0x4D, 0x54, 0x68, 0x64 }, "midi,mid", "audio/midi");
 
-		public readonly static FileType Flac = new FileType(new byte?[] { 0x66, 0x4C, 0x61, 0x43, 0, 0, 0, 0x22 }, "flac", "audio/x-flac");
+        public readonly static FileType Flac = new FileType(new byte?[] { 0x66, 0x4C, 0x61, 0x43, 0, 0, 0, 0x22 }, "flac", "audio/x-flac");
 
-		#endregion Audio
+        #endregion Audio
 
-		#region Zip, 7zip, rar, dll_exe, tar, bz2, gz_tgz
+        #region Zip, 7zip, rar, dll_exe, tar, bz2, gz_tgz
 
-		public readonly static FileType GZ_TGZ = new FileType(new byte?[] { 0x1F, 0x8B, 0x08 }, "gz, tgz", "application/x-gz");
+        public readonly static FileType GZ_TGZ = new FileType(new byte?[] { 0x1F, 0x8B, 0x08 }, "gz, tgz", "application/x-gz");
 
-		public readonly static FileType ZIP_7z = new FileType(new byte?[] { 66, 77 }, "7z", "application/x-compressed");
-		public readonly static FileType ZIP_7z_2 = new FileType(new byte?[] { 0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C }, "7z", "application/x-compressed");
+        public readonly static FileType ZIP_7z = new FileType(new byte?[] { 66, 77 }, "7z", "application/x-compressed");
+        public readonly static FileType ZIP_7z_2 = new FileType(new byte?[] { 0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C }, "7z", "application/x-compressed");
 
-		public readonly static FileType ZIP = new FileType(new byte?[] { 0x50, 0x4B, 0x03, 0x04 }, "zip", "application/x-compressed");
-		public readonly static FileType RAR = new FileType(new byte?[] { 0x52, 0x61, 0x72, 0x21 }, "rar", "application/x-compressed");
-		public readonly static FileType DLL_EXE = new FileType(new byte?[] { 0x4D, 0x5A }, "dll, exe", "application/octet-stream");
+        public readonly static FileType ZIP = new FileType(new byte?[] { 0x50, 0x4B, 0x03, 0x04 }, "zip", "application/x-compressed");
+        public readonly static FileType RAR = new FileType(new byte?[] { 0x52, 0x61, 0x72, 0x21 }, "rar", "application/x-compressed");
+        public readonly static FileType DLL_EXE = new FileType(new byte?[] { 0x4D, 0x5A }, "dll, exe", "application/octet-stream");
 
-		//Compressed tape archive file using standard (Lempel-Ziv-Welch) compression
-		public readonly static FileType TAR_ZV = new FileType(new byte?[] { 0x1F, 0x9D }, "tar.z", "application/x-tar");
+        //Compressed tape archive file using standard (Lempel-Ziv-Welch) compression
+        public readonly static FileType TAR_ZV = new FileType(new byte?[] { 0x1F, 0x9D }, "tar.z", "application/x-tar");
 
-		//Compressed tape archive file using LZH (Lempel-Ziv-Huffman) compression
-		public readonly static FileType TAR_ZH = new FileType(new byte?[] { 0x1F, 0xA0 }, "tar.z", "application/x-tar");
+        //Compressed tape archive file using LZH (Lempel-Ziv-Huffman) compression
+        public readonly static FileType TAR_ZH = new FileType(new byte?[] { 0x1F, 0xA0 }, "tar.z", "application/x-tar");
 
-		//bzip2 compressed archive
-		public readonly static FileType BZ2 = new FileType(new byte?[] { 0x42, 0x5A, 0x68 }, "bz2,tar,bz2,tbz2,tb2", "application/x-bzip2");
+        //bzip2 compressed archive
+        public readonly static FileType BZ2 = new FileType(new byte?[] { 0x42, 0x5A, 0x68 }, "bz2,tar,bz2,tbz2,tb2", "application/x-bzip2");
 
-		#endregion Zip, 7zip, rar, dll_exe, tar, bz2, gz_tgz
+        #endregion Zip, 7zip, rar, dll_exe, tar, bz2, gz_tgz
 
-		#region Media ogg, dwg, pst, psd
+        #region Media ogg, dwg, pst, psd
 
-		// media
-		public readonly static FileType OGG = new FileType(new byte?[] { 103, 103, 83, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0 }, "oga,ogg,ogv,ogx", "application/ogg");
+        // media
+        public readonly static FileType OGG = new FileType(new byte?[] { 103, 103, 83, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0 }, "oga,ogg,ogv,ogx", "application/ogg");
 
-		public readonly static FileType PST = new FileType(new byte?[] { 0x21, 0x42, 0x44, 0x4E }, "pst", "application/octet-stream");
+        public readonly static FileType PST = new FileType(new byte?[] { 0x21, 0x42, 0x44, 0x4E }, "pst", "application/octet-stream");
 
-		//eneric AutoCAD drawing image/vnd.dwg  image/x-dwg application/acad
-		public readonly static FileType DWG = new FileType(new byte?[] { 0x41, 0x43, 0x31, 0x30 }, "dwg", "application/acad");
+        //eneric AutoCAD drawing image/vnd.dwg  image/x-dwg application/acad
+        public readonly static FileType DWG = new FileType(new byte?[] { 0x41, 0x43, 0x31, 0x30 }, "dwg", "application/acad");
 
-		//Photoshop image file
-		public readonly static FileType PSD = new FileType(new byte?[] { 0x38, 0x42, 0x50, 0x53 }, "psd", "application/octet-stream");
+        //Photoshop image file
+        public readonly static FileType PSD = new FileType(new byte?[] { 0x38, 0x42, 0x50, 0x53 }, "psd", "application/octet-stream");
 
-		#endregion Media ogg, dwg, pst, psd
+        #endregion Media ogg, dwg, pst, psd
 
-		public readonly static FileType LIB_COFF = new FileType(new byte?[] { 0x21, 0x3C, 0x61, 0x72, 0x63, 0x68, 0x3E, 0x0A }, "lib", "application/octet-stream");
+        public readonly static FileType LIB_COFF = new FileType(new byte?[] { 0x21, 0x3C, 0x61, 0x72, 0x63, 0x68, 0x3E, 0x0A }, "lib", "application/octet-stream");
 
-		#region Crypto aes, skr, skr_2, pkr
+        #region Crypto aes, skr, skr_2, pkr
 
-		//AES Crypt file format. (The fourth byte is the version number.)
-		public readonly static FileType AES = new FileType(new byte?[] { 0x41, 0x45, 0x53 }, "aes", "application/octet-stream");
+        //AES Crypt file format. (The fourth byte is the version number.)
+        public readonly static FileType AES = new FileType(new byte?[] { 0x41, 0x45, 0x53 }, "aes", "application/octet-stream");
 
-		//SKR	 	PGP secret keyring file
-		public readonly static FileType SKR = new FileType(new byte?[] { 0x95, 0x00 }, "skr", "application/octet-stream");
+        //SKR	 	PGP secret keyring file
+        public readonly static FileType SKR = new FileType(new byte?[] { 0x95, 0x00 }, "skr", "application/octet-stream");
 
-		//SKR	 	PGP secret keyring file
-		public readonly static FileType SKR_2 = new FileType(new byte?[] { 0x95, 0x01 }, "skr", "application/octet-stream");
+        //SKR	 	PGP secret keyring file
+        public readonly static FileType SKR_2 = new FileType(new byte?[] { 0x95, 0x01 }, "skr", "application/octet-stream");
 
-		//PKR	 	PGP public keyring file
-		public readonly static FileType PKR = new FileType(new byte?[] { 0x99, 0x01 }, "pkr", "application/octet-stream");
+        //PKR	 	PGP public keyring file
+        public readonly static FileType PKR = new FileType(new byte?[] { 0x99, 0x01 }, "pkr", "application/octet-stream");
 
-		#endregion Crypto aes, skr, skr_2, pkr
+        #endregion Crypto aes, skr, skr_2, pkr
 
-		/*
+        /*
 		 * 46 72 6F 6D 20 20 20 or	 	From
 		46 72 6F 6D 20 3F 3F 3F or	 	From ???
 		46 72 6F 6D 3A 20	 	From:
@@ -186,281 +186,205 @@ namespace MimeDetective
 		are for Netscape, Eudora, and a generic signature, respectively.
 		EML is also used by Outlook Express and QuickMail.
 		 */
-		public readonly static FileType EML_FROM = new FileType(new byte?[] { 0x46, 0x72, 0x6F, 0x6D }, "eml", "message/rfc822");
+        public readonly static FileType EML_FROM = new FileType(new byte?[] { 0x46, 0x72, 0x6F, 0x6D }, "eml", "message/rfc822");
 
-		//EVTX	 	Windows Vista event log file
-		public readonly static FileType ELF = new FileType(new byte?[] { 0x45, 0x6C, 0x66, 0x46, 0x69, 0x6C, 0x65, 0x00 }, "elf", "text/plain");
+        //EVTX	 	Windows Vista event log file
+        public readonly static FileType ELF = new FileType(new byte?[] { 0x45, 0x6C, 0x66, 0x46, 0x69, 0x6C, 0x65, 0x00 }, "elf", "text/plain");
 
-		// number of bytes we read from a file
-		public const ushort MaxHeaderSize = 560;  // some file formats have headers offset to 512 bytes
+        // number of bytes we read from a file
+        public const ushort MaxHeaderSize = 560;  // some file formats have headers offset to 512 bytes
 
-		public static readonly FileType[] Types = new FileType[] { PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
-				BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, DWG, LIB_COFF, PST, PSD, BZ2,
-				AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE,
-				Mp3, Wav, Flac, MIDI,
-				Tiff, TiffLittleEndian, TiffBigEndian, TiffBig,
-				Mp4ISOv1, MovQuickTime, MP4VideoFiles, Mp4QuickTime, Mp4VideoFile, ThridGPP2File, Mp4A, FLV };
+        public static readonly FileType[] Types = new FileType[] { PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
+                BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, DWG, LIB_COFF, PST, PSD, BZ2,
+                AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE,
+                Mp3, Wav, Flac, MIDI,
+                Tiff, TiffLittleEndian, TiffBigEndian, TiffBig,
+                Mp4ISOv1, MovQuickTime, MP4VideoFiles, Mp4QuickTime, Mp4VideoFile, ThridGPP2File, Mp4A, FLV };
 
-		//public static readonly FileType[] sortedTypes = Types.OrderBy(x => x.Header.Length).ToArray();
+        //public static readonly FileType[] sortedTypes = Types.OrderBy(x => x.Header.Length).ToArray();
 
-		public static readonly FileType[] XmlTypes = new FileType[] { WORDX, EXCELX, PPTX, ODS, ODT };
+        public static readonly FileType[] XmlTypes = new FileType[] { WORDX, EXCELX, PPTX, ODS, ODT };
 
-		#endregion Constants
+        #endregion Constants
 
-		public static void SaveToXmlFile(string path)
-		{
-			using (FileStream file = File.OpenWrite(path))
-			{
-				var serializer = new System.Xml.Serialization.XmlSerializer(Types.GetType());
-				serializer.Serialize(file, Types);
-			}
-		}
+        public static void SaveToXmlFile(string path)
+        {
+            using (FileStream file = File.OpenWrite(path))
+            {
+                var serializer = new System.Xml.Serialization.XmlSerializer(Types.GetType());
+                serializer.Serialize(file, Types);
+            }
+        }
 
-		public static FileType[] LoadFromXmlFile(string path)
-		{
-			using (FileStream file = File.OpenRead(path))
-			{
-				var serializer = new System.Xml.Serialization.XmlSerializer(Types.GetType());
+        public static FileType[] LoadFromXmlFile(string path)
+        {
+            using (FileStream file = File.OpenRead(path))
+            {
+                var serializer = new System.Xml.Serialization.XmlSerializer(Types.GetType());
 
-				return (FileType[])serializer.Deserialize(file);
-			}
-		}
+                return (FileType[])serializer.Deserialize(file);
+            }
+        }
 
-		/// <summary>
-		/// Read header of a file and depending on the information in the header
-		/// return object FileType.
-		/// Return null in case when the file type is not identified.
-		/// </summary>
-		/// <param name="fileHeaderReadFunc">A function which returns the bytes found</param>
-		/// <param name="fileFullName">If given and file typ is a zip file, a check for docx and xlsx is done</param>
-		/// <returns>FileType or null not identified</returns>
+        //todo break apart and split zip file handling to an IAnalyzer interface stuff design here
+        internal static FileType GetFileType(in ReadResult readResult)
+        {
+            if (readResult.ReadLength == 0)
+                return null;
 
-		/* todo
-		public static FileType GetFileType(Func<byte[]> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
-		{
-			return GetFileType(fileHeaderReadFunc(), stream, shouldDisposeStream: false, isFileHeaderRented: false);
-		}
+            try
+            {
+                bool doesNotHaveValues = true;
 
-		public static async Task<FileType> GetFileTypeAsync(Func<Task<byte[]>> fileHeaderReadFunc, Stream stream = null, byte[] data = null)
-		{
-			return GetFileType(await fileHeaderReadFunc(), stream, shouldDisposeStream: false, isFileHeaderRented: false);
-		}*/
+                // checking if it's binary (not really exact, but should do the job)
+                // shouldn't work with UTF-16 OR UTF-32 files
+                for (int i = 0; i < readResult.ReadLength; i++)
+                {
+                    if (readResult.Array[i] != 0)
+                    {
+                        doesNotHaveValues = false;
+                        break;
+                    }
+                }
 
-		//todo break apart and split zip file handling to an IAnalyzer interface stuff design here
-		internal static FileType GetFileType(in ReadResult readResult)
-		{
-			if (readResult.ReadLength == 0)
-				return null;
+                if (doesNotHaveValues)
+                    return null;
 
-			try
-			{
-				bool doesNotHaveValues = true;
+                uint highestMatchingCount = 0;
+                FileType highestMatchingType = null;
 
-				// checking if it's binary (not really exact, but should do the job)
-				// shouldn't work with UTF-16 OR UTF-32 files
-				for (int i = 0; i < readResult.ReadLength; i++)
-				{
-					if (readResult.Array[i] != 0)
-					{
-						doesNotHaveValues = false;
-						break;
-					}
-				}
+                // compare the file header to the stored file headers
+                foreach (FileType type in Types)
+                {
+                    uint matchingCount = GetFileMatchingCount(in readResult, type);
 
-				if (doesNotHaveValues)
-					return null;
+                    if (type.Header.Length == matchingCount)
+                    {
+                        highestMatchingType = type;
+                        break;
+                    }
+                    else if (matchingCount > highestMatchingCount)
+                    {
+                        highestMatchingCount = matchingCount;
+                        highestMatchingType = type;
+                    }
+                }
 
-				uint highestMatchingCount = 0;
-				FileType highestMatchingType = null;
+                if (ZIP.Equals(highestMatchingType))
+                    return FindZipType(readResult);
 
-				// compare the file header to the stored file headers
-				foreach (FileType type in Types)
-				{
-					uint matchingCount = GetFileMatchingCount(in readResult, type);
+                return highestMatchingType;
+            }
+            finally
+            {
+                if (readResult.Source != null && readResult.ShouldDisposeStream)
+                    readResult.Source.Dispose();
 
-					if (type.Header.Length == matchingCount)
-					{
-						highestMatchingType = type;
-						break;
-					}
-					else if (matchingCount > highestMatchingCount)
-					{
-						highestMatchingCount = matchingCount;
-						highestMatchingType = type;
-					}
-				}
+                //this might be the perf issue
+                if (readResult.IsArrayRented)
+                    ArrayPool<byte>.Shared.Return(readResult.Array);
+            }
+        }
 
-				if (ZIP.Equals(highestMatchingType))
-					return FindZipType(in readResult);
+        private static FileType FindZipType(ReadResult readResult)
+        {
+            //TODO this still needs disposed somehow
+            readResult.CreateMemoryStreamIfSourceIsNull();
 
-				return highestMatchingType;
-			}
-			finally
-			{
-				if (readResult.Source != null && readResult.ShouldDisposeStream)
-					readResult.Source.Dispose();
+            if (readResult.Source.Position > 0)
+                readResult.Source.Seek(0, SeekOrigin.Begin);
 
-				//this might be the perf issue
-				if (readResult.IsArrayRented)
-					ArrayPool<byte>.Shared.Return(readResult.Array);
-			}
-		}
+            using (ZipArchive zipData = new ZipArchive(readResult.Source, ZipArchiveMode.Read, leaveOpen: true))
+            {
+                //check for office xml formats
+                var officeXml = CheckForDocxAndXlsxStream(zipData);
 
-		private static FileType FindZipType(in ReadResult readResult)
-		{
-			//TODO this still needs disposed somehow
-			readResult.CreateMemoryStreamIfSourceIsNull();
+                if (officeXml != null)
+                    return officeXml;
 
-			if (readResult.Source.Position > 0)
-				readResult.Source.Seek(0, SeekOrigin.Begin);
+                //check for open office formats
+                var openOffice = CheckForOdtAndOds(zipData);
 
-			using (ZipArchive zipData = new ZipArchive(readResult.Source, ZipArchiveMode.Read, leaveOpen: true))
-			{
-				//check for office xml formats
-				var officeXml = CheckForDocxAndXlsxStream(zipData);
+                if (openOffice != null)
+                    return openOffice;
+            }
 
-				if (officeXml != null)
-					return officeXml;
+            return ZIP;
+        }
 
-				//check for open office formats
-				var openOffice = CheckForOdtAndOds(zipData);
+        /// <summary>
+        /// Gets the list of FileTypes based on list of extensions in Comma-Separated-Values string
+        /// </summary>
+        /// <param name="CSV">The CSV String with extensions</param>
+        /// <returns>List of FileTypes</returns>
+        public static List<FileType> GetFileTypesByExtensions(string CSV)
+        {
+            List<FileType> result = new List<FileType>();
 
-				if (openOffice != null)
-					return openOffice;
-			}
+            foreach (FileType type in Types)
+            {
+                if (CSV.IndexOf(type.Extension, 0, StringComparison.OrdinalIgnoreCase) > 0)
+                    result.Add(type);
+            }
+            return result;
+        }
 
-			return ZIP;
-		}
+        private static FileType CheckForDocxAndXlsxStream(ZipArchive zipData)
+        {
+            foreach (var entry in zipData.Entries)
+            {
+                if (entry.FullName.StartsWith("word/"))
+                    return WORDX;
+                else if (entry.FullName.StartsWith("xl/"))
+                    return EXCELX;
+                else if (entry.FullName.StartsWith("ppt/"))
+                    return PPTX;
+            }
 
-		/// <summary>
-		/// Gets the list of FileTypes based on list of extensions in Comma-Separated-Values string
-		/// </summary>
-		/// <param name="CSV">The CSV String with extensions</param>
-		/// <returns>List of FileTypes</returns>
-		public static List<FileType> GetFileTypesByExtensions(string CSV)
-		{
-			List<FileType> result = new List<FileType>();
+            return null;
+        }
 
-			foreach (FileType type in Types)
-			{
-				if (CSV.IndexOf(type.Extension,0,StringComparison.OrdinalIgnoreCase) > 0)
-					result.Add(type);
-			}
-			return result;
-		}  
+        //check for open doc formats
+        private static FileType CheckForOdtAndOds(ZipArchive zipFile)
+        {
+            ZipArchiveEntry ooMimeType = null;
 
-		private static FileType CheckForDocxAndXlsxStream(ZipArchive zipData)
-		{
-			foreach (var entry in zipData.Entries)
-			{
-				if (entry.FullName.StartsWith("word/"))
-					return WORDX;
-				else if (entry.FullName.StartsWith("xl/"))
-					return EXCELX;
-				else if (entry.FullName.StartsWith("ppt/"))
-					return PPTX;
-			}
+            foreach (var entry in zipFile.Entries)
+            {
+                if (entry.FullName == "mimetype")
+                {
+                    ooMimeType = entry;
+                    break;
+                }
+            }
 
-			return null;
-		}
+            if (ooMimeType is null)
+                return null;
 
-		/*
-		private static FileType CheckForDocxAndXlsxStream(ZipArchive zipData)
-		{
-			if (zipData.Entries.Any(e => e.FullName.StartsWith("word/")))
-				return WORDX;
-			else if (zipData.Entries.Any(e => e.FullName.StartsWith("xl/")))
-				return EXCELX;
-			else if (zipData.Entries.Any(e => e.FullName.StartsWith("ppt/")))
-				return PPTX;
-			else
-				return null;
-		}
-		*/
-		/*
-		private static FileType CheckForDocxAndXlsx(FileType type, FileInfo fileInfo)
-		{
-			FileType result = null;
+            using (var textReader = new StreamReader(ooMimeType.Open()))
+            {
+                var mimeType = textReader.ReadToEnd();
 
-			//check for docx and xlsx
-			using (var zipFile = ZipFile.OpenRead(fileInfo.FullName))
-			{
-				if (zipFile.Entries.Any(e => e.FullName.StartsWith("word/")))
-					result = WORDX;
-				else if (zipFile.Entries.Any(e => e.FullName.StartsWith("xl/")))
-					result = EXCELX;
-				else
-					result = CheckForOdtAndOds(result, zipFile);
-			}
-			return result;
-		}
-		*/
+                if (mimeType == ODT.Mime)
+                    return ODT;
+                else if (mimeType == ODS.Mime)
+                    return ODS;
+                else
+                    return null;
+            }
+        }
 
-		//check for open doc formats
-		private static FileType CheckForOdtAndOds(ZipArchive zipFile)
-		{
-			ZipArchiveEntry ooMimeType = null;
+        private static uint GetFileMatchingCount(in ReadResult readResult, FileType type)
+        {
+            uint matchingCount = 0;
 
-			foreach (var entry in zipFile.Entries)
-			{
-				if (entry.FullName == "mimetype")
-				{
-					ooMimeType = entry;
-					break;
-				}
-			}
+            for (int i = 0, iOffset = type.HeaderOffset; i < type.Header.Length && i < readResult.ReadLength && iOffset < readResult.ReadLength; i++, iOffset++)
+            {
+                if (type.Header[i] is null || type.Header[i] == readResult.Array[iOffset])
+                    matchingCount++;
+            }
 
-			if (ooMimeType is null)
-				return null;
-
-			using (var textReader = new StreamReader(ooMimeType.Open()))
-			{
-				var mimeType = textReader.ReadToEnd();
-
-				if (mimeType == ODT.Mime)
-					return ODT;
-				else if (mimeType == ODS.Mime)
-					return ODS;
-				else
-					return null;
-			}
-		}
-
-		/*
-		private static int GetFileMatchingCountOld(byte[] fileHeader, FileType type)
-		{
-			int matchingCount = 0;
-
-			for (int i = 0; i < type.Header.Length; i++)
-			{
-				// if file offset is not set to zero, we need to take this into account when comparing.
-				// if byte in type.header is set to null, means this byte is variable, ignore it
-				if (type.Header[i] != null && type.Header[i] != fileHeader[i + type.HeaderOffset])
-				{
-					// if one of the bytes does not match, move on to the next type
-					matchingCount = 0;
-					break;
-				}
-				else
-				{
-					matchingCount++;
-				}
-			}
-
-			return matchingCount;
-		}*/
-
-		private static uint GetFileMatchingCount(in ReadResult readResult, FileType type)
-		{
-			uint matchingCount = 0;
-
-			for (int i = 0, iOffset = type.HeaderOffset; i < type.Header.Length && i < readResult.ReadLength && iOffset < readResult.ReadLength; i++, iOffset++)
-			{
-				if (type.Header[i] is null || type.Header[i] == readResult.Array[iOffset])
-					matchingCount++;
-			}
-
-			return matchingCount;
-		}
-	}
+            return matchingCount;
+        }
+    }
 }
