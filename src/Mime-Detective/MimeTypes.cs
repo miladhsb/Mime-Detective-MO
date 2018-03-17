@@ -3,9 +3,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using static MimeDetective.InputHelpers;
 
 namespace MimeDetective
 {
@@ -18,11 +15,17 @@ namespace MimeDetective
     /// </summary>
     public static class MimeTypes
     {
-        // all the file types to be put into one list
+        // number of bytes we read from a file
+        // some file formats have headers offset to 512 bytes
+        public const ushort MaxHeaderSize = 560;
 
         #region Constants
 
         #region office, excel, ppt and documents, xml, pdf, rtf, msdoc
+
+        /// <summary>
+        /// This is for usage when a file type definition requires content inspection instead of reading headers
+        /// </summary>
         public readonly static byte?[] EmptyHeader = new byte?[0];
 
         // office and documents
@@ -35,11 +38,17 @@ namespace MimeDetective
 
         //ms office and openoffice docs (they're zip files: rename and enjoy!)
         //don't add them to the list, as they will be 'subtypes' of the ZIP type
+        //Open Xml Document formats
         public readonly static FileType WORDX = new FileType(EmptyHeader, "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 512);
         public readonly static FileType PPTX = new FileType(EmptyHeader, "pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", 512);
         public readonly static FileType EXCELX = new FileType(EmptyHeader, "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 512);
+
+        //Open Document formats
         public readonly static FileType ODT = new FileType(EmptyHeader, "odt", "application/vnd.oasis.opendocument.text", 512);
         public readonly static FileType ODS = new FileType(EmptyHeader, "ods", "application/vnd.oasis.opendocument.spreadsheet", 512);
+        public readonly static FileType ODP = new FileType(EmptyHeader, "odp", "application/vnd.oasis.opendocument.presentation", 512);
+        public readonly static FileType ODG = new FileType(EmptyHeader, "odg", "application/vnd.oasis.opendocument.graphics", 512);
+
 
         // common documents
         public readonly static FileType RTF = new FileType(new byte?[] { 0x7B, 0x5C, 0x72, 0x74, 0x66, 0x31 }, "rtf", "application/rtf");
@@ -47,11 +56,10 @@ namespace MimeDetective
         public readonly static FileType PDF = new FileType(new byte?[] { 0x25, 0x50, 0x44, 0x46 }, "pdf", "application/pdf");
 
         //todo place holder extension
-        public readonly static FileType MSDOC = new FileType(new byte?[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }, "msdoc", "application/octet-stream");
+        public readonly static FileType MS_OFFICE = new FileType(new byte?[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }, "doc,ppt,xls", "application/octet-stream");
 
         //application/xml text/xml
-        public readonly static FileType XML = new FileType(new byte?[] { 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x3D, 0x22, 0x31, 0x2E, 0x30, 0x22, 0x3F, 0x3E },
-                                                            "xml,xul", "text/xml");
+        public readonly static FileType XML = new FileType(new byte?[] { 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x3D, 0x22, 0x31, 0x2E, 0x30, 0x22, 0x3F, 0x3E }, "xml,xul", "text/xml");
 
         //text files
         public readonly static FileType TXT = new FileType(EmptyHeader, "txt", "text/plain");
@@ -72,6 +80,8 @@ namespace MimeDetective
         public readonly static FileType PNG = new FileType(new byte?[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, "png", "image/png");
         public readonly static FileType GIF = new FileType(new byte?[] { 0x47, 0x49, 0x46, 0x38, null, 0x61 }, "gif", "image/gif");
         public readonly static FileType BMP = new FileType(new byte?[] { 0x42, 0x4D }, "bmp", "image/bmp"); // or image/x-windows-bmp
+
+        //TODO review this
         public readonly static FileType ICO = new FileType(new byte?[] { 0, 0, 1, 0 }, "ico", "image/x-icon");
 
         //tiff
@@ -86,8 +96,12 @@ namespace MimeDetective
 
         #region Video
 
-        //todo review these
-        //mp4 iso base file format, value: ....ftypisom
+        /// <summary>
+        /// Base Magic Word for all complex MPEG4 container formats
+        /// ex. ....ftypisom (header starting after ....)
+        /// </summary>
+        public readonly static FileType MP4Container = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70 }, "mp4,m4v,m4a,mp4a,mov", "video/mp4", 4);
+
         public readonly static FileType Mp4ISOv1 = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D }, "mp4", "video/mp4", 4);
 
         public readonly static FileType Mp4QuickTime = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70, 0x34, 0x32 }, "m4v", "video/x-m4v", 4);
@@ -98,18 +112,22 @@ namespace MimeDetective
 
         public readonly static FileType Mp4VideoFile = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x4D, 0x53, 0x4E, 0x56 }, "mp4", "video/mp4", 4);
 
-        public readonly static FileType Mp4A = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41, 0x20 }, "mp4a", "audio/mp4", 4);
+        public readonly static FileType Mp4A = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41, 0x20 }, "mp4a,m4a", "audio/mp4", 4);
 
         //FLV	 	Flash video file
         public readonly static FileType FLV = new FileType(new byte?[] { 0x46, 0x4C, 0x56, 0x01 }, "flv", "application/unknown");
 
-        public readonly static FileType ThridGPP2File = new FileType(new byte?[] { 0, 0, 0, 0x20, 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70 }, "3gp", "video/3gg");
+        public readonly static FileType ThreeGPP2File = new FileType(new byte?[] { 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70 }, "3gp", "video/3gg", 4);
 
         #endregion Video
 
         #region Audio
 
-        public readonly static FileType Mp3 = new FileType(new byte?[] { 0x49, 0x44, 0x33 }, "mp3", "audio/mpeg");
+        /// <summary>
+        /// MP3 file with ID3 Meta-data
+        /// </summary>
+        public readonly static FileType Mp3ID3 = new FileType(new byte?[] { 0x49, 0x44, 0x33 }, "mp3", "audio/mpeg");
+        //todo this needs analyzer support public readonly static FileType Mp3SyncFrame = new FileType(new byte?[] { 0xFF, 0xF1 }, "mp3", "audio/mpeg");
 
         //WAV	 	Resource Interchange File Format -- Audio for Windows file, where xx xx xx xx is the file size (little endian), audio/wav audio/x-wav
 
@@ -119,20 +137,23 @@ namespace MimeDetective
         //MID, MIDI	 	Musical Instrument Digital Interface (MIDI) sound file
         public readonly static FileType MIDI = new FileType(new byte?[] { 0x4D, 0x54, 0x68, 0x64 }, "midi,mid", "audio/midi");
 
-        public readonly static FileType Flac = new FileType(new byte?[] { 0x66, 0x4C, 0x61, 0x43, 0, 0, 0, 0x22 }, "flac", "audio/x-flac");
+        /// <summary>
+        /// File type on Kessler's site is wrong it should be "fLaC" only
+        /// </summary>
+        public readonly static FileType Flac = new FileType(new byte?[] { 0x66, 0x4C, 0x61, 0x43 }, "flac", "audio/x-flac");
 
         #endregion Audio
 
         #region Zip, 7zip, rar, dll_exe, tar, bz2, gz_tgz
 
-        public readonly static FileType GZ_TGZ = new FileType(new byte?[] { 0x1F, 0x8B, 0x08 }, "gz, tgz", "application/x-gz");
+        public readonly static FileType GZ_TGZ = new FileType(new byte?[] { 0x1F, 0x8B, 0x08 }, "gz,tgz", "application/x-gz");
 
-        public readonly static FileType ZIP_7z = new FileType(new byte?[] { 66, 77 }, "7z", "application/x-compressed");
-        public readonly static FileType ZIP_7z_2 = new FileType(new byte?[] { 0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C }, "7z", "application/x-compressed");
+        //public readonly static FileType ZIP_7z = new FileType(new byte?[] { 66, 77 }, "7z", "application/x-compressed");
+        public readonly static FileType ZIP_7z = new FileType(new byte?[] { 0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C }, "7z", "application/x-compressed");
 
         public readonly static FileType ZIP = new FileType(new byte?[] { 0x50, 0x4B, 0x03, 0x04 }, "zip", "application/x-compressed");
         public readonly static FileType RAR = new FileType(new byte?[] { 0x52, 0x61, 0x72, 0x21 }, "rar", "application/x-compressed");
-        public readonly static FileType DLL_EXE = new FileType(new byte?[] { 0x4D, 0x5A }, "dll, exe", "application/octet-stream");
+        public readonly static FileType DLL_EXE = new FileType(new byte?[] { 0x4D, 0x5A }, "dll,exe", "application/octet-stream");
 
         //Compressed tape archive file using standard (Lempel-Ziv-Welch) compression
         public readonly static FileType TAR_ZV = new FileType(new byte?[] { 0x1F, 0x9D }, "tar.z", "application/x-tar");
@@ -148,7 +169,7 @@ namespace MimeDetective
         #region Media ogg, dwg, pst, psd
 
         // media
-        public readonly static FileType OGG = new FileType(new byte?[] { 103, 103, 83, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0 }, "oga,ogg,ogv,ogx", "application/ogg");
+        public readonly static FileType OGG = new FileType(new byte?[] { 0x4F, 0x67, 0x67, 0x53 }, "oga,ogg,ogv,ogx", "application/ogg");
 
         public readonly static FileType PST = new FileType(new byte?[] { 0x21, 0x42, 0x44, 0x4E }, "pst", "application/octet-stream");
 
@@ -179,40 +200,41 @@ namespace MimeDetective
         #endregion Crypto aes, skr, skr_2, pkr
 
         /*
-		 * 46 72 6F 6D 20 20 20 or	 	From
-		46 72 6F 6D 20 3F 3F 3F or	 	From ???
-		46 72 6F 6D 3A 20	 	From:
-		EML	 	A commmon file extension for e-mail files. Signatures shown here
-		are for Netscape, Eudora, and a generic signature, respectively.
-		EML is also used by Outlook Express and QuickMail.
-		 */
+         * 46 72 6F 6D 20 20 20 or	 	From
+        46 72 6F 6D 20 3F 3F 3F or	 	From ???
+        46 72 6F 6D 3A 20	 	From:
+        EML	 	A commmon file extension for e-mail files. Signatures shown here
+        are for Netscape, Eudora, and a generic signature, respectively.
+        EML is also used by Outlook Express and QuickMail.
+         */
         public readonly static FileType EML_FROM = new FileType(new byte?[] { 0x46, 0x72, 0x6F, 0x6D }, "eml", "message/rfc822");
 
         //EVTX	 	Windows Vista event log file
         public readonly static FileType ELF = new FileType(new byte?[] { 0x45, 0x6C, 0x66, 0x46, 0x69, 0x6C, 0x65, 0x00 }, "elf", "text/plain");
 
-        // number of bytes we read from a file
-        public const ushort MaxHeaderSize = 560;  // some file formats have headers offset to 512 bytes
-
-        public static readonly FileType[] Types = new FileType[] { PDF, WORD, EXCEL, JPEG, ZIP, RAR, RTF, PNG, PPT, GIF, DLL_EXE, MSDOC,
-                BMP, DLL_EXE, ZIP_7z, ZIP_7z_2, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, DWG, LIB_COFF, PST, PSD, BZ2,
+        public static readonly FileType[] Types = new FileType[] { PDF, JPEG, ZIP, RAR, RTF, PNG, GIF, DLL_EXE, MS_OFFICE,
+                BMP, DLL_EXE, ZIP_7z, GZ_TGZ, TAR_ZH, TAR_ZV, OGG, ICO, XML, DWG, LIB_COFF, PST, PSD, BZ2,
                 AES, SKR, SKR_2, PKR, EML_FROM, ELF, TXT_UTF8, TXT_UTF16_BE, TXT_UTF16_LE, TXT_UTF32_BE, TXT_UTF32_LE,
-                Mp3, Wav, Flac, MIDI,
+                Mp3ID3, Wav, Flac, MIDI,
                 Tiff, TiffLittleEndian, TiffBigEndian, TiffBig,
-                Mp4ISOv1, MovQuickTime, MP4VideoFiles, Mp4QuickTime, Mp4VideoFile, ThridGPP2File, Mp4A, FLV };
+                MP4Container, Mp4ISOv1, MovQuickTime, MP4VideoFiles, Mp4QuickTime, Mp4VideoFile, ThreeGPP2File, Mp4A, FLV };
 
         //public static readonly FileType[] sortedTypes = Types.OrderBy(x => x.Header.Length).ToArray();
 
-        public static readonly FileType[] XmlTypes = new FileType[] { WORDX, EXCELX, PPTX, ODS, ODT };
+
+        /// <summary>
+        /// OpenDocument And OpenXML Document types
+        /// </summary>
+        public static readonly FileType[] XmlTypes = new FileType[] { WORDX, EXCELX, PPTX, ODS, ODT, ODG, ODP };
 
         #endregion Constants
 
-        public static void SaveToXmlFile(string path)
+        public static void SaveToXmlFile(string path, IEnumerable<FileType> types)
         {
             using (FileStream file = File.OpenWrite(path))
             {
-                var serializer = new System.Xml.Serialization.XmlSerializer(Types.GetType());
-                serializer.Serialize(file, Types);
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(IEnumerable<FileType>));
+                serializer.Serialize(file, types);
             }
         }
 
@@ -220,96 +242,10 @@ namespace MimeDetective
         {
             using (FileStream file = File.OpenRead(path))
             {
-                var serializer = new System.Xml.Serialization.XmlSerializer(Types.GetType());
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(FileType[]));
 
                 return (FileType[])serializer.Deserialize(file);
             }
-        }
-
-        //todo break apart and split zip file handling to an IAnalyzer interface stuff design here
-        internal static FileType GetFileType(in ReadResult readResult)
-        {
-            if (readResult.ReadLength == 0)
-                return null;
-
-            try
-            {
-                bool doesNotHaveValues = true;
-
-                // checking if it's binary (not really exact, but should do the job)
-                // shouldn't work with UTF-16 OR UTF-32 files
-                for (int i = 0; i < readResult.ReadLength; i++)
-                {
-                    if (readResult.Array[i] != 0)
-                    {
-                        doesNotHaveValues = false;
-                        break;
-                    }
-                }
-
-                if (doesNotHaveValues)
-                    return null;
-
-                uint highestMatchingCount = 0;
-                FileType highestMatchingType = null;
-
-                // compare the file header to the stored file headers
-                foreach (FileType type in Types)
-                {
-                    uint matchingCount = GetFileMatchingCount(in readResult, type);
-
-                    if (type.Header.Length == matchingCount)
-                    {
-                        highestMatchingType = type;
-                        break;
-                    }
-                    else if (matchingCount > highestMatchingCount)
-                    {
-                        highestMatchingCount = matchingCount;
-                        highestMatchingType = type;
-                    }
-                }
-
-                if (ZIP.Equals(highestMatchingType))
-                    return FindZipType(readResult);
-
-                return highestMatchingType;
-            }
-            finally
-            {
-                if (readResult.Source != null && readResult.ShouldDisposeStream)
-                    readResult.Source.Dispose();
-
-                //this might be the perf issue
-                if (readResult.IsArrayRented)
-                    ArrayPool<byte>.Shared.Return(readResult.Array);
-            }
-        }
-
-        private static FileType FindZipType(ReadResult readResult)
-        {
-            //TODO this still needs disposed somehow
-            readResult.CreateMemoryStreamIfSourceIsNull();
-
-            if (readResult.Source.Position > 0)
-                readResult.Source.Seek(0, SeekOrigin.Begin);
-
-            using (ZipArchive zipData = new ZipArchive(readResult.Source, ZipArchiveMode.Read, leaveOpen: true))
-            {
-                //check for office xml formats
-                var officeXml = CheckForDocxAndXlsxStream(zipData);
-
-                if (officeXml != null)
-                    return officeXml;
-
-                //check for open office formats
-                var openOffice = CheckForOdtAndOds(zipData);
-
-                if (openOffice != null)
-                    return openOffice;
-            }
-
-            return ZIP;
         }
 
         /// <summary>
@@ -317,74 +253,17 @@ namespace MimeDetective
         /// </summary>
         /// <param name="CSV">The CSV String with extensions</param>
         /// <returns>List of FileTypes</returns>
-        public static List<FileType> GetFileTypesByExtensions(string CSV)
+        public static List<FileType> GetFileTypesByExtensions(string csv)
         {
             List<FileType> result = new List<FileType>();
 
             foreach (FileType type in Types)
             {
-                if (CSV.IndexOf(type.Extension, 0, StringComparison.OrdinalIgnoreCase) > 0)
+                if (csv.IndexOf(type.Extension, 0, StringComparison.OrdinalIgnoreCase) > 0)
                     result.Add(type);
             }
+
             return result;
-        }
-
-        private static FileType CheckForDocxAndXlsxStream(ZipArchive zipData)
-        {
-            foreach (var entry in zipData.Entries)
-            {
-                if (entry.FullName.StartsWith("word/"))
-                    return WORDX;
-                else if (entry.FullName.StartsWith("xl/"))
-                    return EXCELX;
-                else if (entry.FullName.StartsWith("ppt/"))
-                    return PPTX;
-            }
-
-            return null;
-        }
-
-        //check for open doc formats
-        private static FileType CheckForOdtAndOds(ZipArchive zipFile)
-        {
-            ZipArchiveEntry ooMimeType = null;
-
-            foreach (var entry in zipFile.Entries)
-            {
-                if (entry.FullName == "mimetype")
-                {
-                    ooMimeType = entry;
-                    break;
-                }
-            }
-
-            if (ooMimeType is null)
-                return null;
-
-            using (var textReader = new StreamReader(ooMimeType.Open()))
-            {
-                var mimeType = textReader.ReadToEnd();
-
-                if (mimeType == ODT.Mime)
-                    return ODT;
-                else if (mimeType == ODS.Mime)
-                    return ODS;
-                else
-                    return null;
-            }
-        }
-
-        private static uint GetFileMatchingCount(in ReadResult readResult, FileType type)
-        {
-            uint matchingCount = 0;
-
-            for (int i = 0, iOffset = type.HeaderOffset; i < type.Header.Length && i < readResult.ReadLength && iOffset < readResult.ReadLength; i++, iOffset++)
-            {
-                if (type.Header[i] is null || type.Header[i] == readResult.Array[iOffset])
-                    matchingCount++;
-            }
-
-            return matchingCount;
-        }
+        }  
     }
 }
