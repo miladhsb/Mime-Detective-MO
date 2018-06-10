@@ -14,7 +14,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using MimeDetective.Analyzers;
 
-namespace Mime_Detective.Benchmarks
+namespace MimeDetective.Benchmarks
 {
     public class MyConfig : ManualConfig
     {
@@ -26,18 +26,20 @@ namespace Mime_Detective.Benchmarks
                 .With(Jit.RyuJit)
                 .With(Platform.X64)
                 .WithId("Net47"));*/
-
+            /*
             Add(Job.Default.With(Runtime.Core)
                 .With(CsProjCoreToolchain.NetCoreApp11)
                 .With(Platform.X64)
                 .With(Jit.RyuJit)
-                .WithId("NetCore1.1"));
-
+                .WithId("NetCore1.1"));*/
+            
+            /*
             Add(Job.Default.With(Runtime.Core)
                 .With(CsProjCoreToolchain.NetCoreApp20)
                 .With(Platform.X64)
                 .With(Jit.RyuJit)
                 .WithId("NetCore2.0"));
+            */
 
             Add(Job.Default.With(Runtime.Core)
                 .With(CsProjCoreToolchain.NetCoreApp21)
@@ -48,23 +50,28 @@ namespace Mime_Detective.Benchmarks
     }
 
     [Config(typeof(MyConfig)), MemoryDiagnoser]
-    public class TypeLookup
+    public class Benchmarks
     {
         static readonly byte[][] files = new byte[][]
         {
+            ReadFile(new FileInfo("./data/Assemblies/ManagedDLL.dll")),
+            ReadFile(new FileInfo("./data/Assemblies/ManagedExe.exe")),
+            ReadFile(new FileInfo("./data/Images/test.png")),
             ReadFile(new FileInfo("./data/Images/test.jpg")),
             ReadFile(new FileInfo("./data/Images/test.gif")),
             ReadFile(new FileInfo("./data/Documents/DocWord2016.doc")),
             ReadFile(new FileInfo("./data/Zip/Images.zip")),
             ReadFile(new FileInfo("./data/Assemblies/NativeExe.exe")),
-            ReadFile(new FileInfo("./data/Audio/wavVLC.wav"))
+            ReadFile(new FileInfo("./data/Audio/wavVLC.wav")),
+            ReadFile(new FileInfo("./data/Documents/PdfWord2016.pdf"))
         };
 
-        const int OpsPerInvoke = 6;
-        static readonly LinearCountingAnalyzer linear = new LinearCountingAnalyzer(MimeTypes.Types);
-        static readonly DictionaryBasedTrie trie2 = new DictionaryBasedTrie(MimeTypes.Types);
-        static readonly HybridTrie trie3 = new HybridTrie(MimeTypes.Types);
-        static readonly ArrayBasedTrie trie5 = new ArrayBasedTrie(MimeTypes.Types);
+        const int OpsPerInvoke = 10;
+        static readonly LinearCounting linear = new LinearCounting(MimeTypes.Types);
+        static readonly DictionaryTrie dict = new DictionaryTrie(MimeTypes.Types);
+        static readonly HybridTrie hybrid = new HybridTrie(MimeTypes.Types);
+        static readonly ArrayTrie array = new ArrayTrie(MimeTypes.Types);
+        static readonly LinearTrie linearTrie = new LinearTrie(MimeTypes.Types);
 
         static byte[] ReadFile(FileInfo info)
         {
@@ -76,32 +83,38 @@ namespace Mime_Detective.Benchmarks
             return bytes;
         }
 
-        //[Benchmark]
-        public LinearCountingAnalyzer LinearCountingAnalyzerInsertAll()
+        [Benchmark]
+        public LinearCounting LinearCountingInsertAll()
         {
-            return new LinearCountingAnalyzer(MimeTypes.Types);
+            return new LinearCounting(MimeTypes.Types);
         }
 
-        //[Benchmark]
-        public DictionaryBasedTrie DictTrieInsertAll()
+        [Benchmark]
+        public LinearTrie LinearTrieInsertAll()
         {
-            return new DictionaryBasedTrie(MimeTypes.Types);
+            return new LinearTrie(MimeTypes.Types);
         }
 
-        //[Benchmark]
-        public ArrayBasedTrie ArrayTrieInsertAll()
+        [Benchmark]
+        public DictionaryTrie DictTrieInsertAll()
         {
-            return new ArrayBasedTrie(MimeTypes.Types);
+            return new DictionaryTrie(MimeTypes.Types);
         }
 
-        //[Benchmark]
+        [Benchmark]
+        public ArrayTrie ArrayTrieInsertAll()
+        {
+            return new ArrayTrie(MimeTypes.Types);
+        }
+
+        [Benchmark]
         public HybridTrie HybridTrieInsertAll()
         {
             return new HybridTrie(MimeTypes.Types);
         }
 
         [Benchmark(OperationsPerInvoke = OpsPerInvoke)]
-        public FileType LinearCountingAnalyzerSearch()
+        public FileType LinearCountingSearch()
         {
             FileType result = null;
             foreach (var array in files)
@@ -115,6 +128,20 @@ namespace Mime_Detective.Benchmarks
         }
 
         [Benchmark(OperationsPerInvoke = OpsPerInvoke)]
+        public FileType LinearTrieSearch()
+        {
+            FileType result = null;
+            foreach (var array in files)
+            {
+                using (ReadResult readResult = new ReadResult(array, MimeTypes.MaxHeaderSize))
+                {
+                    result = linearTrie.Search(in readResult);
+                }
+            }
+            return result;
+        }
+
+        [Benchmark(OperationsPerInvoke = OpsPerInvoke)]
         public FileType DictionaryTrieSearch()
         {
             FileType result = null;
@@ -122,7 +149,7 @@ namespace Mime_Detective.Benchmarks
             {
                 using (ReadResult readResult = new ReadResult(array, MimeTypes.MaxHeaderSize))
                 {
-                    result = trie2.Search(in readResult);
+                    result = dict.Search(in readResult);
                 }
             }
             return result;
@@ -137,7 +164,7 @@ namespace Mime_Detective.Benchmarks
             {
                 using (ReadResult readResult = new ReadResult(array, MimeTypes.MaxHeaderSize))
                 {
-                    result = trie3.Search(in readResult);
+                    result = hybrid.Search(in readResult);
                 }
             }
             return result;
@@ -152,7 +179,7 @@ namespace Mime_Detective.Benchmarks
             {
                 using (ReadResult readResult = new ReadResult(array, MimeTypes.MaxHeaderSize))
                 {
-                    result = trie5.Search(in readResult);
+                    result = Benchmarks.array.Search(in readResult);
                 }
             }
             return result;
@@ -163,7 +190,7 @@ namespace Mime_Detective.Benchmarks
     {
         public static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<TypeLookup>(); 
+            var summary = BenchmarkRunner.Run<Benchmarks>(); 
         }
     }
 }

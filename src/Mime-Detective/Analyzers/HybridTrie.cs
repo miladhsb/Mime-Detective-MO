@@ -39,13 +39,14 @@ namespace MimeDetective.Analyzers
         public HybridTrie(IEnumerable<FileType> types)
         {
             if (types is null)
-                throw new ArgumentNullException(nameof(types));
+                ThrowHelpers.FileTypeArgumentIsNull();
 
             OffsetNodes[0] = new OffsetNode(0);
 
             foreach (var type in types)
             {
-                Insert(type);
+                if ((object)type != null)
+                    Insert(type);
             }
         }
 
@@ -106,7 +107,7 @@ namespace MimeDetective.Analyzers
         public void Insert(FileType type)
         {
             if (type is null)
-                throw new ArgumentNullException(nameof(type));
+                ThrowHelpers.FileTypeArgumentIsNull();
 
             ref OffsetNode match = ref OffsetNodes[0];
             bool matchFound = false;
@@ -126,17 +127,16 @@ namespace MimeDetective.Analyzers
             //handle expanding collection
             if (!matchFound)
             {
-                int newNodePos = offsetNodesLength;
-
-                if (newNodePos >= OffsetNodes.Length)
+                if (offsetNodesLength >= OffsetNodes.Length)
                 {
-                    int newOffsetNodeCount = OffsetNodes.Length * 2 + 1;
+                    int newOffsetNodeCalc = OffsetNodes.Length * 2;
+                    int newOffsetNodeCount = newOffsetNodeCalc > 560 ? 560 : newOffsetNodeCalc;
                     var newOffsetNodes = new OffsetNode[newOffsetNodeCount];
                     Array.Copy(OffsetNodes, newOffsetNodes, offsetNodesLength);
                     OffsetNodes = newOffsetNodes;
                 }
 
-                match = ref OffsetNodes[newNodePos];
+                match = ref OffsetNodes[offsetNodesLength];
                 match = new OffsetNode(type.HeaderOffset);
                 offsetNodesLength++;
             }
@@ -175,6 +175,7 @@ namespace MimeDetective.Analyzers
             node.Record = type;
         }
 
+        //TODO make a base-1 dict
         private sealed class Node
         {
             //if complete node then this not null

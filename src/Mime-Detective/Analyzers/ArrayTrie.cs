@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MimeDetective.Analyzers
 {
-    public sealed class ArrayBasedTrie : IFileAnalyzer
+    public sealed class ArrayTrie : IFileAnalyzer
     {
         private const int NullStandInValue = 256;
         private const int MaxNodeSize = 257;
@@ -14,7 +14,7 @@ namespace MimeDetective.Analyzers
         /// <summary>
         /// Constructs an empty ArrayBasedTrie, <see cref="Insert(FileType)"/> to add definitions
         /// </summary>
-        public ArrayBasedTrie()
+        public ArrayTrie()
         {
             OffsetNodes[0] = new OffsetNode(0);
         }
@@ -23,10 +23,10 @@ namespace MimeDetective.Analyzers
         /// Constructs an ArrayBasedTrie from an Enumerable of FileTypes, <see cref="Insert(FileType)"/> to add more definitions
         /// </summary>
         /// <param name="types"></param>
-        public ArrayBasedTrie(IEnumerable<FileType> types)
+        public ArrayTrie(IEnumerable<FileType> types)
         {
             if (types is null)
-                throw new ArgumentNullException(nameof(types));
+                ThrowHelpers.FileTypeEnumerableIsNull();
 
             OffsetNodes[0] = new OffsetNode(0);
 
@@ -55,7 +55,7 @@ namespace MimeDetective.Analyzers
                     int currentVal = readResult.Array[i];
                     Node node = prevNode[currentVal];
 
-                    if (node.Children == null)
+                    if (node.Children is null)
                     {
                         node = prevNode[NullStandInValue];
 
@@ -83,7 +83,7 @@ namespace MimeDetective.Analyzers
         public void Insert(FileType type)
         {
             if (type is null)
-                throw new ArgumentNullException(nameof(type));
+                ThrowHelpers.FileTypeArgumentIsNull();
 
             ref OffsetNode match = ref OffsetNodes[0];
             bool matchFound = false;
@@ -102,17 +102,17 @@ namespace MimeDetective.Analyzers
 
             if (!matchFound)
             {
-                int newNodePos = offsetNodesLength;
-
-                if (newNodePos >= OffsetNodes.Length)
+                if (offsetNodesLength >= OffsetNodes.Length)
                 {
-                    int newOffsetNodeCount = OffsetNodes.Length * 2 + 1;
+                    //TODO put max size check
+                    int newOffsetNodeCalc = OffsetNodes.Length * 2;
+                    int newOffsetNodeCount = newOffsetNodeCalc > 560 ? 560 : newOffsetNodeCalc;
                     var newOffsetNodes = new OffsetNode[newOffsetNodeCount];
                     Array.Copy(OffsetNodes, newOffsetNodes, offsetNodesLength);
                     OffsetNodes = newOffsetNodes;
                 }
 
-                match = ref OffsetNodes[newNodePos];
+                match = ref OffsetNodes[offsetNodesLength];
                 match = new OffsetNode(type.HeaderOffset);
                 offsetNodesLength++;
             }
@@ -121,19 +121,15 @@ namespace MimeDetective.Analyzers
 
             for (int i = 0; i < type.Header.Length; i++)
             {
-                byte? value = type.Header[i];
-                int arrayPos = value ?? NullStandInValue;
+                int arrayPos = type.Header[i] ?? NullStandInValue;
                 ref Node node = ref prevNode[arrayPos];
 
+                //TODO maybe short circuit it
+                if (i == type.Header.Length - 1)
+                    node.Record = type;
+
                 if (node.Children is null)
-                {
-                    FileType record = null;
-
-                    if (i == type.Header.Length - 1)
-                        record = type;
-
-                    node = new Node(record);
-                }
+                    node.Children = new Node[MaxNodeSize];
 
                 prevNode = node.Children;
             }
@@ -155,14 +151,7 @@ namespace MimeDetective.Analyzers
         {
             public Node[] Children;
 
-            //if complete node then this not null
             public FileType Record;
-
-            public Node(FileType record)
-            {
-                Children = new Node[MaxNodeSize];
-                Record = record;
-            }
         }
     }
 }

@@ -1,74 +1,80 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace MimeDetective.Analyzers
 {
-    public class LinearCountingAnalyzer : IFileAnalyzer
+    public class LinearCounting : IFileAnalyzer
     {
-        private readonly List<FileType> types;
+        private FileType[] types = new FileType[20];
+        private int typesLength = 0;
 
         /// <summary>
         /// Constructs an empty LinearCountingAnalyzer, use <see cref="Insert(FileType)"/> to add file types
         /// </summary>
-        public LinearCountingAnalyzer()
+        public LinearCounting()
         {
-            types = new List<FileType>();
         }
 
         /// <summary>
         /// Constructs a LinearCountingAnalyzer using the supplied IEnumerable<FileType>
         /// </summary>
         /// <param name="fileTypes"></param>
-        public LinearCountingAnalyzer(IEnumerable<FileType> fileTypes)
+        public LinearCounting(IEnumerable<FileType> fileTypes)
         {
             if (fileTypes is null)
-                throw new ArgumentNullException(nameof(fileTypes));
-
-            types = new List<FileType>();
+                ThrowHelpers.FileTypeEnumerableIsNull();
 
             foreach (var fileType in fileTypes)
             {
                 if ((object)fileType != null)
                     Insert(fileType);
             }
+
+            //types.OrderBy(x => x.HeaderOffset);
+            //todo sort
+            //Array.Sort<FileType>(types, (x,y) => x.HeaderOffset.CompareTo(y.HeaderOffset));
+            //types = types;
         }
 
         public void Insert(FileType fileType)
         {
             if (fileType is null)
-                throw new ArgumentNullException(nameof(fileType));
+                ThrowHelpers.FileTypeArgumentIsNull();
 
-            types.Add(fileType);
+            if (typesLength >= types.Length)
+            {
+                int newTypesCount = types.Length * 2;
+                var newTypes = new FileType[newTypesCount];
+                Array.Copy(types, newTypes, typesLength);
+                types = newTypes;
+            }
+
+            types[typesLength] = fileType;
+            typesLength++;
         }
 
         public FileType Search(in ReadResult readResult)
         {
-            if (readResult.ReadLength == 0)
-                return null;
-
             uint highestMatchingCount = 0;
             FileType highestMatchingType = null;
 
             // compare the file header to the stored file headers
-            for (int typeIndex = 0; typeIndex < types.Count; typeIndex++)
+            for (int typeIndex = 0; typeIndex < typesLength; typeIndex++)
             {
                 FileType type = types[typeIndex];
-
                 uint matchingCount = 0;
-                int iOffset = type.HeaderOffset;
-                int readEnd = iOffset + type.Header.Length;
 
-                if (readEnd > readResult.ReadLength)
-                    continue;
-
-                for (int i = 0; iOffset < readEnd; i++, iOffset++)
+                for (int i = 0, iOffset = type.HeaderOffset; iOffset < readResult.ReadLength && i < type.Header.Length; i++, iOffset++)
                 {
                     if (type.Header[i] is null || type.Header[i].Value == readResult.Array[iOffset])
                         matchingCount++;
+                    else
+                        break;
                 }
 
-                //TODO should this be default behavior
+                //TODO should this be default behavior?
                 if (type.Header.Length == matchingCount && matchingCount >= highestMatchingCount)
                 {
                     highestMatchingType = type;
