@@ -52,7 +52,7 @@ namespace MimeDetective
             FileType currentType = file.GetFileType();
 
             //TODO Write a test to check if this null check is correct
-            if (currentType.Mime == null)
+            if (currentType?.Mime == null)
                 return false;
 
             return requiredTypes.Contains(currentType);
@@ -87,7 +87,7 @@ namespace MimeDetective
             FileType actualType = GetFileType(file);
 
             //TODO Write a test to check if this null check is correct
-            if (actualType.Mime is null)
+            if (actualType?.Mime is null)
                 return false;
 
             return (actualType.Equals(type));
