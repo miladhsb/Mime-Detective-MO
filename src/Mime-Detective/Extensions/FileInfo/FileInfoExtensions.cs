@@ -7,6 +7,9 @@ namespace MimeDetective
 {
     public static partial class FileInfoExtensions
     {
+        public readonly static byte?[] EmptyHeader = new byte?[0];
+        public readonly static FileType TXT = new FileType(EmptyHeader, "txt", "text/plain");
+
         /// <summary>
         /// Read header of a file and depending on the information in the header
         /// return object FileType.
@@ -19,7 +22,11 @@ namespace MimeDetective
         {
             using (ReadResult readResult = ReadResult.ReadFileHeader(file))
             {
-                return MimeAnalyzers.GetFileType(in readResult);
+                var mimeType = MimeAnalyzers.GetFileType(in readResult);
+
+                if(mimeType is null)
+                    return TXT;
+                return mimeType;
             }
         }
 
@@ -35,7 +42,11 @@ namespace MimeDetective
         {
             using (ReadResult readResult = await ReadResult.ReadFileHeaderAsync(file))
             {
-                return MimeAnalyzers.GetFileType(in readResult);
+                var mimeType = MimeAnalyzers.GetFileType(in readResult);
+
+                if (mimeType is null)
+                    return TXT;
+                return mimeType;
             }
         }
 
