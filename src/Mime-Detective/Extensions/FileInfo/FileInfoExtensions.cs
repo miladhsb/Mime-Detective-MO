@@ -24,7 +24,7 @@ namespace MimeDetective
             {
                 var mimeType = MimeAnalyzers.GetFileType(in readResult);
 
-                if(mimeType is null)
+                if(mimeType == null)
                     return TXT;
                 return mimeType;
             }
@@ -44,7 +44,7 @@ namespace MimeDetective
             {
                 var mimeType = MimeAnalyzers.GetFileType(in readResult);
 
-                if (mimeType is null)
+                if (mimeType == null)
                     return TXT;
                 return mimeType;
             }
@@ -61,6 +61,9 @@ namespace MimeDetective
         public static bool IsFileOfTypes(this FileInfo file, List<FileType> requiredTypes)
         {
             FileType currentType = file.GetFileType();
+
+            if (currentType == null)
+                currentType = TXT;
 
             //TODO Write a test to check if this null check is correct
             if (currentType?.Mime == null)
@@ -96,6 +99,9 @@ namespace MimeDetective
         public static bool IsType(this FileInfo file, FileType type)
         {
             FileType actualType = GetFileType(file);
+
+            if (actualType == null)
+                actualType = TXT;
 
             //TODO Write a test to check if this null check is correct
             if (actualType?.Mime is null)
